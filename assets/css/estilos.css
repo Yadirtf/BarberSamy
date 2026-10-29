@@ -1,0 +1,372 @@
+/* =========================================================
+   Vitrina para TV — estilos
+   Todo está diseñado sobre un lienzo fijo de 1920x1080 que
+   se escala al tamaño real del televisor (ver app.js).
+   Evitamos propiedades costosas o modernas que fallan en los
+   navegadores de Smart TV (backdrop-filter, filter: blur,
+   gap en flex, clamp(), inset...).
+   ========================================================= */
+
+@font-face { font-family: "Hombros"; src: url("../fonts/bigshoulders.woff2") format("woff2"); font-weight: 100 900; font-display: block; }
+@font-face { font-family: "DM Sans"; src: url("../fonts/dmsans.woff2") format("woff2"); font-weight: 100 1000; font-display: block; }
+@font-face { font-family: "Instrument"; src: url("../fonts/instrument.woff2") format("woff2"); font-style: normal; font-display: block; }
+@font-face { font-family: "Instrument"; src: url("../fonts/instrument-italic.woff2") format("woff2"); font-style: italic; font-display: block; }
+
+:root {
+  --fondo: #0c0b0a;
+  --oro: #d4a857;
+  --oro-claro: #f1d595;
+  --crema: #f3ead8;
+  --rojo: #9b2c22;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #000;
+  cursor: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
+
+#stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  margin-left: -960px; margin-top: -540px;
+  overflow: hidden;
+  background: var(--fondo);
+  -webkit-transform-origin: 50% 50%; transform-origin: 50% 50%;
+}
+
+/* ---------- Ambiente (detrás de todo) ---------- */
+#ambiente { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.bokeh {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(212, 168, 87, .16), rgba(212, 168, 87, 0));
+}
+.b1 { width: 520px; height: 520px; left: 80px;   top: 60px; }
+.b2 { width: 380px; height: 380px; left: 1500px; top: 140px; }
+.b3 { width: 640px; height: 640px; left: 1200px; top: 620px; }
+.b4 { width: 300px; height: 300px; left: 640px;  top: 760px; }
+.b5 { width: 260px; height: 260px; left: 980px;  top: 40px; }
+.b6 { width: 420px; height: 420px; left: -120px; top: 700px; }
+
+/* ---------- Slides ---------- */
+#slides { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.slide { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; }
+.slide.oculta { visibility: hidden; }
+
+/* Brillo de color del producto */
+.s-glow {
+  position: absolute; width: 1500px; height: 1500px; left: -250px; top: -210px; border-radius: 50%;
+}
+.s-glow2 {
+  position: absolute; width: 900px; height: 900px; left: 1300px; top: 500px; border-radius: 50%;
+}
+.invertido .s-glow { left: 670px; }
+.invertido .s-glow2 { left: -300px; }
+.invertido .s-piso { left: 860px; }
+
+/* Piso reflectante sobre el que "descansa" el producto */
+.s-piso {
+  position: absolute; left: 0; top: 820px; width: 1060px; height: 260px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, .045), rgba(255, 255, 255, 0) 70%);
+  border-top: 1px solid rgba(243, 234, 216, .08);
+}
+
+/* Palabra gigante de fondo, en contorno */
+.s-palabra {
+  position: absolute; left: 0; top: 40px;
+  white-space: nowrap;
+  font-family: "Hombros", Impact, sans-serif; font-weight: 900;
+  font-size: 400px; line-height: 1; text-transform: uppercase; letter-spacing: .02em;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(243, 234, 216, .07);
+}
+
+/* Zona del producto */
+.s-producto { position: absolute; left: 110px; top: 70px; width: 840px; height: 880px; }
+.invertido .s-producto { left: 970px; }
+
+.s-aro {
+  position: absolute; left: 110px; top: 90px; width: 620px; height: 620px; border-radius: 50%;
+  border: 2px dashed rgba(212, 168, 87, .38);
+}
+.s-aro2 {
+  position: absolute; left: 30px; top: 10px; width: 780px; height: 780px; border-radius: 50%;
+  border: 1px solid rgba(243, 234, 216, .08);
+}
+.s-sombra {
+  position: absolute; left: 170px; top: 735px; width: 500px; height: 80px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .75), rgba(0, 0, 0, 0));
+}
+.s-flota {
+  position: absolute; left: 0; top: 0; width: 840px; height: 800px;
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+  -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
+}
+.s-imgwrap { position: relative; display: inline-block; line-height: 0; }
+.s-img { display: block; max-width: 660px; max-height: 680px; }
+.s-brillo {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+.s-banda {
+  position: absolute; left: 0; top: -20%; width: 45%; height: 140%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .55) 50%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* Sello giratorio (Nuevo / Oferta / Más vendido) */
+.s-sello { position: absolute; left: 610px; top: 40px; width: 230px; height: 230px; }
+.s-sello svg { position: absolute; left: 0; top: 0; width: 230px; height: 230px; overflow: visible; }
+.s-sello .giro text {
+  font-family: "DM Sans", Arial, sans-serif; font-weight: 700; font-size: 21px; letter-spacing: 3px;
+  fill: var(--crema); text-transform: uppercase;
+}
+.slide-video .s-sello { left: auto; right: 110px; top: 90px; }
+
+/* ---------- Información del producto ---------- */
+.s-info {
+  position: absolute; left: 1010px; top: 30px; width: 800px; height: 920px;
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
+  -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
+}
+.invertido .s-info { left: 130px; }
+
+.s-cat {
+  font-size: 25px; font-weight: 500; letter-spacing: .34em; text-transform: uppercase;
+  color: rgba(243, 234, 216, .72); white-space: nowrap;
+}
+.s-linea { display: inline-block; width: 80px; height: 3px; vertical-align: middle; margin-right: 24px; margin-top: -4px; }
+.s-cat .t { display: inline-block; }
+
+.s-marca {
+  margin-top: 26px;
+  font-size: 30px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--oro);
+}
+
+.s-nombre, .v-nombre, .m-nombre {
+  font-family: "Hombros", Impact, sans-serif; font-weight: 900; text-transform: uppercase;
+  line-height: .9; color: var(--crema); letter-spacing: .005em;
+}
+.s-nombre { margin-top: 10px; width: 800px; font-size: 150px; }
+/* padding/margin superior: deja espacio a las tildes (Í, Á) sin que la máscara las corte */
+.pal { display: inline-block; overflow: hidden; vertical-align: top; padding: .16em 0 .04em; margin-top: -.16em; white-space: nowrap; }
+.ch { display: inline-block; }
+
+.s-desc, .v-desc {
+  font-family: "Instrument", Georgia, serif; font-style: italic;
+  color: rgba(243, 234, 216, .9);
+  overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+.s-desc { margin-top: 22px; font-size: 42px; line-height: 1.16; max-width: 780px; }
+.w { display: inline-block; }
+
+.s-carac { margin-top: 26px; list-style: none; }
+.s-carac li { position: relative; padding: 12px 0 10px; }
+.c-linea { position: absolute; left: 0; top: 0; width: 100%; height: 1px; background: rgba(243, 234, 216, .16); }
+.c-cont { display: block; font-size: 28px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c-num {
+  display: inline-block; width: 66px;
+  font-family: "Hombros", Impact, sans-serif; font-weight: 800; font-size: 30px; color: var(--oro);
+}
+
+.s-pie, .v-pie {
+  margin-top: 30px;
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-align: end; -webkit-align-items: flex-end; align-items: flex-end;
+}
+.chip {
+  display: inline-block; margin-right: 30px; margin-bottom: 10px;
+  padding: 9px 24px; border: 2px solid rgba(243, 234, 216, .32); border-radius: 999px;
+  font-size: 25px; font-weight: 500; letter-spacing: .06em; white-space: nowrap;
+}
+.precio-caja { margin-right: 36px; white-space: nowrap; }
+.precio {
+  font-family: "Hombros", Impact, sans-serif; font-weight: 900; font-size: 100px; line-height: .8;
+  color: var(--oro-claro);
+}
+.antes {
+  display: block; margin-bottom: 8px;
+  font-size: 28px; color: rgba(243, 234, 216, .55); text-decoration: line-through;
+}
+
+/* QR de WhatsApp */
+.qr {
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+  margin-left: auto;
+}
+.qr-img { background: #fff; padding: 10px; border-radius: 12px; line-height: 0; }
+.qr-img img { width: 150px; height: 150px; image-rendering: pixelated; image-rendering: -webkit-optimize-contrast; }
+.qr-txt {
+  width: 150px; margin-right: 20px; text-align: right;
+  font-size: 20px; line-height: 1.25; color: rgba(243, 234, 216, .75);
+}
+.qr-txt b { display: block; color: var(--oro); font-size: 22px; }
+
+/* ---------- Slide con video ---------- */
+.v-video { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; background: #000; }
+.v-degradado {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+  background:
+    linear-gradient(to top, rgba(12, 11, 10, .96) 0%, rgba(12, 11, 10, .7) 34%, rgba(12, 11, 10, 0) 62%),
+    linear-gradient(to right, rgba(12, 11, 10, .85) 0%, rgba(12, 11, 10, .3) 40%, rgba(12, 11, 10, 0) 60%);
+}
+.v-info { position: absolute; left: 120px; bottom: 130px; width: 1680px; }
+.v-izq { width: 900px; }
+.v-nombre { margin-top: 10px; width: 900px; font-size: 130px; }
+.v-desc { margin-top: 18px; font-size: 40px; line-height: 1.16; -webkit-line-clamp: 2; }
+.v-chips { margin-top: 26px; }
+.v-chips .chip { margin-right: 14px; font-size: 23px; background: rgba(12, 11, 10, .45); }
+.v-pie { position: absolute; right: 0; bottom: 0; margin-top: 0; }
+
+/* ---------- Pantalla de marca ---------- */
+.slide-marca .m-glow {
+  position: absolute; left: 160px; top: -310px; width: 1600px; height: 1600px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(212, 168, 87, .3), rgba(212, 168, 87, 0));
+}
+.poste { position: absolute; top: 220px; width: 120px; height: 640px; }
+.poste.izq { left: 170px; }
+.poste.der { left: 1630px; }
+.poste-tubo {
+  position: absolute; left: 10px; top: 50px; width: 100px; height: 540px; overflow: hidden;
+  border-radius: 50px; border: 5px solid var(--oro); background: #fff;
+}
+.poste-rayas {
+  position: absolute; left: -60px; top: -340px; width: 220px; height: 1300px;
+  background: repeating-linear-gradient(-45deg,
+    #b3261e 0, #b3261e 40px, #f3ead8 40px, #f3ead8 80px,
+    #1d3557 80px, #1d3557 120px, #f3ead8 120px, #f3ead8 160px);
+}
+.poste-luz {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  background: linear-gradient(to right, rgba(0, 0, 0, .45), rgba(255, 255, 255, .35) 35%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, .5));
+}
+.poste-tapa {
+  position: absolute; left: 20px; width: 80px; height: 64px; border-radius: 40px;
+  background: radial-gradient(circle at 35% 30%, #fbe7b4, #d4a857 45%, #6e521f);
+}
+.poste-tapa.arriba { top: 0; }
+.poste-tapa.abajo { top: 576px; }
+
+.m-centro {
+  position: absolute; left: 360px; top: 0; width: 1200px; height: 1080px; text-align: center;
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
+  -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+}
+.m-sup { font-size: 28px; font-weight: 500; letter-spacing: .5em; text-transform: uppercase; color: var(--oro); padding-left: .5em; }
+.m-nombre { margin-top: 14px; width: 1200px; font-size: 230px; line-height: .86; }
+.m-eslogan { margin-top: 26px; font-family: "Instrument", Georgia, serif; font-style: italic; font-size: 62px; color: rgba(243, 234, 216, .92); }
+.m-sep { margin: 38px auto 0; width: 220px; height: 3px; background: var(--oro); }
+.m-abajo {
+  margin-top: 40px;
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+  -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
+}
+.m-msg { font-size: 32px; line-height: 1.35; color: rgba(243, 234, 216, .82); text-align: left; max-width: 640px; }
+.m-msg b { color: var(--oro-claro); font-weight: 700; }
+.m-abajo .qr-img { margin-right: 40px; }
+.m-abajo .qr-img img { width: 200px; height: 200px; }
+
+/* ---------- HUD (siempre visible) ---------- */
+#hud { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+#hud-negocio {
+  position: absolute; left: 80px; bottom: 74px;
+  font-size: 20px; font-weight: 700; letter-spacing: .4em; text-transform: uppercase; color: rgba(243, 234, 216, .55);
+}
+#hud-negocio span { color: var(--oro); }
+#hud-contador {
+  position: absolute; right: 80px; bottom: 66px;
+  font-family: "Hombros", Impact, sans-serif; font-weight: 800; font-size: 34px; letter-spacing: .08em;
+  color: rgba(243, 234, 216, .55);
+}
+#cnt-actual { color: var(--crema); }
+#hud-contador i { display: inline-block; width: 40px; height: 2px; margin: 0 14px; vertical-align: middle; background: rgba(243, 234, 216, .35); }
+#progreso {
+  position: absolute; left: 80px; bottom: 44px; width: 1760px; height: 8px; border-radius: 4px; overflow: hidden;
+  background: rgba(243, 234, 216, .1);
+}
+#progreso-rayas {
+  position: absolute; left: 0; top: 0; width: 1900px; height: 8px;
+  background: repeating-linear-gradient(-45deg,
+    #d4a857 0, #d4a857 10px, #f3ead8 10px, #f3ead8 20px, #b3261e 20px, #b3261e 30px, #f3ead8 30px, #f3ead8 40px);
+}
+#progreso-tapa { position: absolute; left: 0; top: 0; width: 1760px; height: 8px; background: #1f1d1b; }
+
+/* ---------- Transiciones ---------- */
+#transicion { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; pointer-events: none; }
+#navaja { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.hoja {
+  position: absolute; left: 0; top: -100px; width: 2600px; height: 1280px;
+  background: #0b0a09;
+  border-left: 6px solid var(--oro); border-right: 6px solid var(--oro);
+  box-shadow: 0 0 60px rgba(212, 168, 87, .55);
+  -webkit-transform: translateX(-3200px) skewX(-14deg); transform: translateX(-3200px) skewX(-14deg);
+}
+.hoja-marca {
+  position: absolute; left: 1300px; top: 640px; width: 0; height: 0;
+}
+.hoja-marca span {
+  position: absolute; left: -400px; top: -60px; width: 800px; text-align: center;
+  font-family: "Hombros", Impact, sans-serif; font-weight: 900; font-size: 110px; line-height: 1;
+  letter-spacing: .06em; text-transform: uppercase; color: rgba(212, 168, 87, .9);
+  -webkit-transform: skewX(14deg); transform: skewX(14deg);
+}
+#postes { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+#postes div {
+  position: absolute; top: 0; width: 322px; height: 1080px;
+  -webkit-transform: scaleY(0); transform: scaleY(0);
+}
+
+/* ---------- Grano de película ---------- */
+#grano {
+  position: absolute; left: -200px; top: -200px; width: 2320px; height: 1480px;
+  opacity: .06; pointer-events: none;
+}
+
+#pausa {
+  position: absolute; right: 80px; top: 60px; display: none;
+  padding: 10px 26px; border: 2px solid var(--oro); border-radius: 999px;
+  font-size: 24px; font-weight: 700; letter-spacing: .3em; color: var(--oro);
+}
+
+/* ---------- Aviso para entrar en pantalla completa ---------- */
+#aviso-fs {
+  position: absolute; left: 50%; top: 860px; width: 760px; margin-left: -380px; display: none;
+  padding: 22px 34px 22px 26px; border-radius: 999px;
+  background: rgba(12, 11, 10, .88); border: 2px solid rgba(212, 168, 87, .7);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+  white-space: nowrap;
+}
+.fs-boton {
+  position: relative; display: inline-block; vertical-align: middle;
+  width: 84px; height: 84px; line-height: 84px; border-radius: 50%; text-align: center;
+  background: var(--oro); color: #1a140a;
+  font-family: "Hombros", Impact, sans-serif; font-weight: 900; font-size: 36px;
+}
+.fs-anillo { position: absolute; left: -4px; top: -4px; width: 92px; height: 92px; border-radius: 50%; border: 3px solid var(--oro); }
+.fs-texto { display: inline-block; vertical-align: middle; margin-left: 28px; font-size: 26px; color: rgba(243, 234, 216, .8); }
+.fs-texto b { display: block; font-size: 34px; color: var(--crema); }
+
+/* ---------- Mensajes de error (para quien edita productos.js) ---------- */
+#error {
+  position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: none;
+  padding: 8vh 8vw; background: #140f0c; color: #f3ead8; font-family: Arial, sans-serif;
+  font-size: 2.4vw; line-height: 1.4; z-index: 10;
+}
+#error h1 { color: #d4a857; font-size: 3.4vw; margin-bottom: 2vh; }
+#error code { color: #ffb4a8; }
+
+/* Video invisible que evita que el TV active el protector de pantalla */
+#despierto { position: fixed; left: 0; top: 0; width: 2px; height: 2px; opacity: .01; pointer-events: none; }

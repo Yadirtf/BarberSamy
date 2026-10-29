@@ -1,0 +1,9 @@
+{
+  "name": "Vitrina",
+  "short_name": "Vitrina",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0c0b0a",
+  "theme_color": "#0c0b0a"
+}

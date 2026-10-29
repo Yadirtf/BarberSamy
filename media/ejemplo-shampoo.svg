@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" width="600" height="900">
+<defs>
+<linearGradient id="botella" x1="0" x2="1"><stop offset="0" stop-color="#041a14"/><stop offset=".22" stop-color="#0b3d30"/><stop offset=".42" stop-color="#1f8a6a"/><stop offset=".58" stop-color="#0f5a45"/><stop offset="1" stop-color="#03140f"/></linearGradient>
+<linearGradient id="negro" x1="0" x2="1"><stop offset="0" stop-color="#050505"/><stop offset=".4" stop-color="#3d3d3d"/><stop offset=".55" stop-color="#1c1c1c"/><stop offset="1" stop-color="#050505"/></linearGradient>
+</defs>
+<path d="M140 92 L330 92 Q350 92 350 112 L350 132 L300 132 L300 205 L270 205 L270 132 L150 132 Q120 132 120 112 Q120 92 140 92 Z" fill="url(#negro)"/>
+<rect x="228" y="200" width="144" height="70" rx="8" fill="url(#negro)"/>
+<path d="M200 268 L400 268 Q460 280 460 340 L460 820 Q460 860 420 860 L180 860 Q140 860 140 820 L140 340 Q140 280 200 268 Z" fill="url(#botella)"/>
+<rect x="160" y="320" width="20" height="500" rx="10" fill="#fff" opacity=".16"/>
+<line x1="210" y1="430" x2="390" y2="430" stroke="#d4a857" stroke-width="3"/>
+<text x="300" y="520" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="54" letter-spacing="4" fill="#f3ead8">SHAMPOO</text>
+<text x="300" y="565" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="26" letter-spacing="9" fill="#9fe3c8">MENTOLADO</text>
+<text x="300" y="640" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="24" fill="#d8efe6">Refresca · Limpia · Controla</text>
+<line x1="210" y1="690" x2="390" y2="690" stroke="#d4a857" stroke-width="3"/>
+<text x="300" y="780" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" letter-spacing="5" fill="#d8efe6">400 ml</text>
+</svg>

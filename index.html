@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vitrina</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0c0b0a">
+<link rel="stylesheet" href="assets/css/estilos.css">
+</head>
+<body>
+
+<div id="stage">
+  <div id="ambiente">
+    <div class="bokeh b1"></div><div class="bokeh b2"></div><div class="bokeh b3"></div>
+    <div class="bokeh b4"></div><div class="bokeh b5"></div><div class="bokeh b6"></div>
+  </div>
+
+  <div id="slides"></div>
+
+  <div id="hud">
+    <div id="hud-negocio"></div>
+    <div id="hud-contador"><span id="cnt-actual">01</span><i></i><span id="cnt-total">01</span></div>
+    <div id="progreso"><div id="progreso-rayas"></div><div id="progreso-tapa"></div></div>
+  </div>
+
+  <div id="transicion">
+    <div id="navaja"><div class="hoja"><div class="hoja-marca"><span></span></div></div></div>
+    <div id="postes"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  </div>
+
+  <div id="grano"></div>
+  <div id="pausa">PAUSA</div>
+  <div id="aviso-fs">
+    <span class="fs-boton"><span class="fs-anillo"></span>OK</span>
+    <span class="fs-texto"><b>Presiona OK en el control</b>para ver en pantalla completa</span>
+  </div>
+</div>
+
+<div id="error"></div>
+
+<!-- Video negro diminuto en bucle: evita que el TV apague la pantalla o active su protector -->
+<video id="despierto" src="assets/sistema/despierto.mp4" muted loop autoplay playsinline></video>
+
+<script src="assets/vendor/gsap.min.js"></script>
+<script src="assets/vendor/qrcode.js"></script>
+<script>
+  // Si productos.js tiene un error de escritura, lo mostramos en pantalla en vez de quedar en negro.
+  window.mostrarError = function (titulo, detalle) {
+    var e = document.getElementById('error');
+    e.innerHTML = '<h1>' + titulo + '</h1><p>' + (detalle || '') + '</p>';
+    e.style.display = 'block';
+  };
+  window.onerror = function (msg, archivo, linea) {
+    if (archivo && archivo.indexOf('productos.js') !== -1) {
+      window.mostrarError('Hay un error en productos.js',
+        'Revisa la línea <code>' + linea + '</code>: suele ser una coma, comilla o llave que falta.<br><br><code>' + msg + '</code>');
+    }
+  };
+  (function () {
+    // ?v=... evita que el TV use una copia vieja de la lista de productos.
+    var datos = document.createElement('script');
+    datos.src = 'productos.js?v=' + new Date().getTime();
+    datos.onload = function () {
+      var app = document.createElement('script');
+      app.src = 'assets/js/app.js?v=1';
+      document.body.appendChild(app);
+    };
+    datos.onerror = function () {
+      window.mostrarError('No se encontró productos.js', 'El archivo debe estar en la misma carpeta que index.html.');
+    };
+    document.body.appendChild(datos);
+  })();
+</script>
+</body>
+</html>
