@@ -24,8 +24,8 @@
    ===================================================================== */
 
 var CONFIG = {
-  negocio: "Tu Barbería",                 // nombre del local
-  eslogan: "Estilo que se nota",
+  negocio: "BARBERIA SAMY",                 // nombre del local
+  eslogan: "Tu Barbero de Confianza !",
   mensajeMarca: "Todos estos productos están disponibles <b>aquí mismo</b>. Pregúntale a tu barbero.",
 
   segundosPorProducto: 11,                // tiempo de cada producto con foto
@@ -33,7 +33,7 @@ var CONFIG = {
   mostrarMarcaCada: 5,                    // cada cuántos productos aparece la pantalla del local (0 = nunca)
   orden: "aleatorio",                     // "aleatorio" o "fijo" (el orden de esta lista)
 
-  whatsapp: "",                           // número con indicativo, sin + ni espacios: "573001234567". Vacío = sin QR
+  whatsapp: "573125568963",                           // número con indicativo, sin + ni espacios: "573001234567". Vacío = sin QR
   mensajeWhatsapp: "Hola! Vi en la pantalla de la barbería este producto: ",
 
   moneda: "$",
