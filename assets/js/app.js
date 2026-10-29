@@ -47,6 +47,7 @@
   }
 
   var stage = document.getElementById('stage');
+  var ANCHO = 1920, ALTO = 1080;   // tamaño lógico del lienzo (lo ajusta ajustarEscala)
   var contSlides = document.getElementById('slides');
 
   // ---------------------------------------------------------
@@ -257,6 +258,49 @@
     }
   }
 
+  // Achica la letra de un texto hasta que quepa entero (sin "..." ni líneas cortadas)
+  function ajustarTexto(nodo, tamMax, tamMin) {
+    if (!nodo) return;
+    var t = tamMax;
+    nodo.style.fontSize = t + 'px';
+    var guard = 0;
+    while (t > tamMin && guard++ < 40 &&
+      // margen de t*0.15: las letras cursivas sobresalen unos px aunque la línea quepa
+      (nodo.scrollWidth > nodo.clientWidth + 1 || nodo.scrollHeight > nodo.clientHeight + t * 0.15)) {
+      t -= 2;
+      nodo.style.fontSize = t + 'px';
+    }
+  }
+
+  // Si la columna de información sigue sin caber, achica descripción y características juntas
+  function ajustarColumna(el) {
+    var info = q('.s-info', el);
+    if (!info) return;
+    var desc = q('.s-desc', el);
+    var caracs = qa('.s-carac .c-cont', el);
+    // Alto real del contenido (la columna lo centra, así que puede sobresalir arriba y abajo)
+    function altoContenido() {
+      var k = info.children;
+      if (!k.length) return 0;
+      return k[k.length - 1].offsetTop + k[k.length - 1].offsetHeight - k[0].offsetTop;
+    }
+    var guard = 0;
+    while (altoContenido() > info.clientHeight && guard++ < 20) {
+      var cambio = false;
+      if (desc && parseInt(desc.style.fontSize, 10) > 26) {
+        desc.style.fontSize = (parseInt(desc.style.fontSize, 10) - 2) + 'px';
+        cambio = true;
+      }
+      for (var i = 0; i < caracs.length; i++) {
+        if (parseInt(caracs[i].style.fontSize, 10) > 18) {
+          caracs[i].style.fontSize = (parseInt(caracs[i].style.fontSize, 10) - 2) + 'px';
+          cambio = true;
+        }
+      }
+      if (!cambio) break;
+    }
+  }
+
   // ---------------------------------------------------------
   // Preparar (precargar) una pantalla antes de mostrarla
   // ---------------------------------------------------------
@@ -275,6 +319,11 @@
       ajustarNombre(q('.s-nombre', el), 150, 84, 2);
       ajustarNombre(q('.v-nombre', el), 130, 80, 1);
       ajustarNombre(q('.m-nombre', el), 230, 110, 1);
+      ajustarTexto(q('.s-desc', el), 42, 28);
+      ajustarTexto(q('.v-desc', el), 40, 26);
+      var caracs = qa('.s-carac .c-cont', el);
+      for (var c = 0; c < caracs.length; c++) ajustarTexto(caracs[c], 28, 18);
+      ajustarColumna(el);
       listo(el);
     }
     var limite = setTimeout(function () { fin(false); }, 15000);
@@ -405,7 +454,7 @@
   var dirNavaja = 1;
   var coloresPostes = ['#141210', '#1b1815', '#d4a857', '#141210', '#9b2c22', '#1b1815'];
   for (var k = 0; k < postes.length; k++) {
-    postes[k].style.left = (k * 320) + 'px';
+    postes[k].style.left = (k * 100 / 6) + '%';
     postes[k].style.background = coloresPostes[k];
   }
   q('.hoja-marca span').innerHTML = esc(AJ.negocio);
@@ -417,9 +466,9 @@
     gsap.set('#navaja', { scaleX: dirNavaja });
     gsap.set('.hoja-marca span', { skewX: 14, scaleX: dirNavaja });
     var tl = gsap.timeline({ onComplete: alTerminar });
-    tl.fromTo(hoja, { x: -3200, skewX: -14 }, { x: -340, duration: 0.65, ease: 'power3.in' })
+    tl.fromTo(hoja, { x: -(ANCHO + 1280), skewX: -14 }, { x: -340, duration: 0.65, ease: 'power3.in' })
       .add(alCubrir)
-      .to(hoja, { x: 2400, duration: 0.8, ease: 'power3.out' }, '+=0.05');
+      .to(hoja, { x: ANCHO + 480, duration: 0.8, ease: 'power3.out' }, '+=0.05');
   }
 
   // "Postes": barras verticales que caen y se levantan
@@ -660,12 +709,25 @@
   });
 
   // ---------------------------------------------------------
-  // Escala del lienzo 1920x1080 al tamaño real de la pantalla
+  // Escala del lienzo al tamaño real de la pantalla.
+  // El diseño base es 1920x1080; si la pantalla no es 16:9, el lienzo
+  // se estira a lo ancho o a lo alto para llenarla sin franjas ni cortes.
   // ---------------------------------------------------------
   function ajustarEscala() {
-    var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080) * AJ.escala;
-    stage.style.webkitTransform = 'scale(' + s + ')';
-    stage.style.transform = 'scale(' + s + ')';
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var aw = vw * AJ.escala, ah = vh * AJ.escala;   // área útil (ajustePantalla < 1 deja margen)
+    var s = Math.min(aw / 1920, ah / 1080);
+    ANCHO = Math.round(aw / s);
+    ALTO = Math.round(ah / s);
+    stage.style.width = ANCHO + 'px';
+    stage.style.height = ALTO + 'px';
+    var tr = 'translate(' + Math.round((vw - aw) / 2) + 'px,' + Math.round((vh - ah) / 2) + 'px) scale(' + s + ')';
+    stage.style.webkitTransform = tr;
+    stage.style.transform = tr;
+    // La "navaja" debe cubrir todo el lienzo, sea cual sea su tamaño
+    hoja.style.width = (ANCHO + 680) + 'px';
+    hoja.style.height = (ALTO + 200) + 'px';
+    q('.hoja-marca').style.left = (ANCHO / 2 + 340) + 'px';
   }
   window.addEventListener('resize', ajustarEscala);
   ajustarEscala();

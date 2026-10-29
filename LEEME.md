@@ -76,5 +76,5 @@ Si el TV va lento, pon `efectoGrano: false`.
 - HTML + CSS + JavaScript puro, escrito para navegadores de Smart TV (Samsung Tizen, LG webOS, Android TV).
 - **GSAP 3** para las animaciones (la librería profesional estándar, gratuita). Solo anima
   `transform` y `opacity`, que el TV acelera con la tarjeta gráfica.
-- Lienzo fijo de 1920×1080 que se escala a cualquier pantalla.
+- Lienzo base de 1920×1080 que se escala a cualquier pantalla y se estira a lo ancho o alto si no es 16:9 (sin franjas ni cortes).
 - Fuentes incluidas en la carpeta (Big Shoulders Display, DM Sans, Instrument Serif): no dependen de internet.

@@ -1,7 +1,10 @@
 /* =========================================================
    Vitrina para TV — estilos
-   Todo está diseñado sobre un lienzo fijo de 1920x1080 que
-   se escala al tamaño real del televisor (ver app.js).
+   Todo está diseñado sobre un lienzo base de 1920x1080 que
+   se escala al tamaño real del televisor (ver app.js). Si la
+   pantalla no es 16:9, el lienzo se estira a lo ancho o a lo
+   alto: el "sobrante" es (100% - 1920px) o (100% - 1080px) y
+   se reparte entre los bloques con calc().
    Evitamos propiedades costosas o modernas que fallan en los
    navegadores de Smart TV (backdrop-filter, filter: blur,
    gap en flex, clamp(), inset...).
@@ -25,54 +28,62 @@
 html, body {
   width: 100%; height: 100%;
   overflow: hidden;
-  background: #000;
+  background: var(--fondo);
   cursor: none;
   -webkit-font-smoothing: antialiased;
 }
 
 body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 
+/* El ancho/alto real y la escala los pone app.js (ajustarEscala) */
 #stage {
-  position: absolute; left: 50%; top: 50%;
+  position: absolute; left: 0; top: 0;
   width: 1920px; height: 1080px;
-  margin-left: -960px; margin-top: -540px;
   overflow: hidden;
   background: var(--fondo);
-  -webkit-transform-origin: 50% 50%; transform-origin: 50% 50%;
+  -webkit-transform-origin: 0 0; transform-origin: 0 0;
 }
 
 /* ---------- Ambiente (detrás de todo) ---------- */
-#ambiente { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+#ambiente { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
 .bokeh {
   position: absolute; border-radius: 50%;
   background: radial-gradient(closest-side, rgba(212, 168, 87, .16), rgba(212, 168, 87, 0));
 }
-.b1 { width: 520px; height: 520px; left: 80px;   top: 60px; }
-.b2 { width: 380px; height: 380px; left: 1500px; top: 140px; }
-.b3 { width: 640px; height: 640px; left: 1200px; top: 620px; }
-.b4 { width: 300px; height: 300px; left: 640px;  top: 760px; }
-.b5 { width: 260px; height: 260px; left: 980px;  top: 40px; }
-.b6 { width: 420px; height: 420px; left: -120px; top: 700px; }
+.b1 { width: 520px; height: 520px; left: 4.2%;   top: 5.6%; }
+.b2 { width: 380px; height: 380px; left: 78.1%;  top: 13%; }
+.b3 { width: 640px; height: 640px; left: 62.5%;  top: 57.4%; }
+.b4 { width: 300px; height: 300px; left: 33.3%;  top: 70.4%; }
+.b5 { width: 260px; height: 260px; left: 51%;    top: 3.7%; }
+.b6 { width: 420px; height: 420px; left: -6.3%;  top: 64.8%; }
 
 /* ---------- Slides ---------- */
-#slides { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
-.slide { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; }
+#slides { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.slide { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; }
 .slide.oculta { visibility: hidden; }
 
-/* Brillo de color del producto */
+/* Brillo de color del producto.
+   El sobrante de ancho se reparte en tercios (margen, centro, margen)
+   y el de alto se reparte arriba y abajo, para que todo quede centrado. */
 .s-glow {
-  position: absolute; width: 1500px; height: 1500px; left: -250px; top: -210px; border-radius: 50%;
+  position: absolute; width: 1500px; height: 1500px; border-radius: 50%;
+  left: -250px; left: calc(-250px + (100% - 1920px) / 3);
+  top: -210px; top: calc(-210px + (100% - 1080px) / 2);
 }
 .s-glow2 {
-  position: absolute; width: 900px; height: 900px; left: 1300px; top: 500px; border-radius: 50%;
+  position: absolute; width: 900px; height: 900px; border-radius: 50%;
+  left: 1300px; left: calc(1300px + (100% - 1920px));
+  top: 500px; top: calc(500px + (100% - 1080px));
 }
-.invertido .s-glow { left: 670px; }
+.invertido .s-glow { left: 670px; left: calc(670px + (100% - 1920px) * 2 / 3); }
 .invertido .s-glow2 { left: -300px; }
-.invertido .s-piso { left: 860px; }
+.invertido .s-piso { left: auto; right: 0; }
 
 /* Piso reflectante sobre el que "descansa" el producto */
 .s-piso {
-  position: absolute; left: 0; top: 820px; width: 1060px; height: 260px;
+  position: absolute; left: 0; height: 260px;
+  top: 820px; top: calc(820px + (100% - 1080px) / 2);
+  width: 1060px; width: calc(1060px + (100% - 1920px) / 3);
   background: linear-gradient(to bottom, rgba(255, 255, 255, .045), rgba(255, 255, 255, 0) 70%);
   border-top: 1px solid rgba(243, 234, 216, .08);
 }
@@ -88,8 +99,12 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 }
 
 /* Zona del producto */
-.s-producto { position: absolute; left: 110px; top: 70px; width: 840px; height: 880px; }
-.invertido .s-producto { left: 970px; }
+.s-producto {
+  position: absolute; width: 840px; height: 880px;
+  left: 110px; left: calc(110px + (100% - 1920px) / 3);
+  top: 70px; top: calc(70px + (100% - 1080px) / 2);
+}
+.invertido .s-producto { left: 970px; left: calc(970px + (100% - 1920px) * 2 / 3); }
 
 .s-aro {
   position: absolute; left: 110px; top: 90px; width: 620px; height: 620px; border-radius: 50%;
@@ -132,12 +147,16 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 
 /* ---------- Información del producto ---------- */
 .s-info {
-  position: absolute; left: 1010px; top: 30px; width: 800px; height: 920px;
+  position: absolute; width: 800px; height: 920px;
+  left: 1010px; left: calc(1010px + (100% - 1920px) * 2 / 3);
+  top: 30px; top: calc(30px + (100% - 1080px) / 2);
   display: -webkit-box; display: -webkit-flex; display: flex;
   -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
   -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
 }
-.invertido .s-info { left: 130px; }
+.invertido .s-info { left: 130px; left: calc(130px + (100% - 1920px) / 3); }
+/* Que ningún bloque se aplaste (y se corte) dentro de la columna; app.js achica la letra si no cabe */
+.s-info > * { -webkit-flex-shrink: 0; flex-shrink: 0; }
 
 .s-cat {
   font-size: 25px; font-weight: 500; letter-spacing: .34em; text-transform: uppercase;
@@ -175,7 +194,7 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 .c-cont { display: block; font-size: 28px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .c-num {
   display: inline-block; width: 66px;
-  font-family: "Hombros", Impact, sans-serif; font-weight: 800; font-size: 30px; color: var(--oro);
+  font-family: "Hombros", Impact, sans-serif; font-weight: 800; font-size: 1.07em; color: var(--oro);
 }
 
 .s-pie, .v-pie {
@@ -213,14 +232,14 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 .qr-txt b { display: block; color: var(--oro); font-size: 22px; }
 
 /* ---------- Slide con video ---------- */
-.v-video { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; background: #000; }
+.v-video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
 .v-degradado {
-  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
   background:
     linear-gradient(to top, rgba(12, 11, 10, .96) 0%, rgba(12, 11, 10, .7) 34%, rgba(12, 11, 10, 0) 62%),
     linear-gradient(to right, rgba(12, 11, 10, .85) 0%, rgba(12, 11, 10, .3) 40%, rgba(12, 11, 10, 0) 60%);
 }
-.v-info { position: absolute; left: 120px; bottom: 130px; width: 1680px; }
+.v-info { position: absolute; left: 120px; right: 120px; bottom: 130px; }
 .v-izq { width: 900px; }
 .v-nombre { margin-top: 10px; width: 900px; font-size: 130px; }
 .v-desc { margin-top: 18px; font-size: 40px; line-height: 1.16; -webkit-line-clamp: 2; }
@@ -230,12 +249,14 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 
 /* ---------- Pantalla de marca ---------- */
 .slide-marca .m-glow {
-  position: absolute; left: 160px; top: -310px; width: 1600px; height: 1600px; border-radius: 50%;
+  position: absolute; width: 1600px; height: 1600px; border-radius: 50%;
+  left: 160px; left: calc(50% - 800px);
+  top: -310px; top: calc(50% - 850px);
   background: radial-gradient(closest-side, rgba(212, 168, 87, .3), rgba(212, 168, 87, 0));
 }
-.poste { position: absolute; top: 220px; width: 120px; height: 640px; }
-.poste.izq { left: 170px; }
-.poste.der { left: 1630px; }
+.poste { position: absolute; width: 120px; height: 640px; top: 220px; top: calc(50% - 320px); }
+.poste.izq { left: 170px; left: calc(170px + (100% - 1920px) / 4); }
+.poste.der { left: 1630px; left: calc(1630px + (100% - 1920px) * 3 / 4); }
 .poste-tubo {
   position: absolute; left: 10px; top: 50px; width: 100px; height: 540px; overflow: hidden;
   border-radius: 50px; border: 5px solid var(--oro); background: #fff;
@@ -258,7 +279,7 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 .poste-tapa.abajo { top: 576px; }
 
 .m-centro {
-  position: absolute; left: 360px; top: 0; width: 1200px; height: 1080px; text-align: center;
+  position: absolute; left: 360px; left: calc(50% - 600px); top: 0; width: 1200px; height: 100%; text-align: center;
   display: -webkit-box; display: -webkit-flex; display: flex;
   -webkit-box-orient: vertical; -webkit-flex-direction: column; flex-direction: column;
   -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
@@ -280,7 +301,7 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 .m-abajo .qr-img img { width: 200px; height: 200px; }
 
 /* ---------- HUD (siempre visible) ---------- */
-#hud { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+#hud { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
 #hud-negocio {
   position: absolute; left: 80px; bottom: 74px;
   font-size: 20px; font-weight: 700; letter-spacing: .4em; text-transform: uppercase; color: rgba(243, 234, 216, .55);
@@ -294,28 +315,29 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 #cnt-actual { color: var(--crema); }
 #hud-contador i { display: inline-block; width: 40px; height: 2px; margin: 0 14px; vertical-align: middle; background: rgba(243, 234, 216, .35); }
 #progreso {
-  position: absolute; left: 80px; bottom: 44px; width: 1760px; height: 8px; border-radius: 4px; overflow: hidden;
+  position: absolute; left: 80px; right: 80px; bottom: 44px; height: 8px; border-radius: 4px; overflow: hidden;
   background: rgba(243, 234, 216, .1);
 }
 #progreso-rayas {
-  position: absolute; left: 0; top: 0; width: 1900px; height: 8px;
+  position: absolute; left: 0; top: 0; width: 1900px; width: calc(100% + 140px); height: 8px;
   background: repeating-linear-gradient(-45deg,
     #d4a857 0, #d4a857 10px, #f3ead8 10px, #f3ead8 20px, #b3261e 20px, #b3261e 30px, #f3ead8 30px, #f3ead8 40px);
 }
-#progreso-tapa { position: absolute; left: 0; top: 0; width: 1760px; height: 8px; background: #1f1d1b; }
+#progreso-tapa { position: absolute; left: 0; top: 0; width: 100%; height: 8px; background: #1f1d1b; }
 
 /* ---------- Transiciones ---------- */
-#transicion { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; pointer-events: none; }
-#navaja { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+#transicion { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+#navaja { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
 .hoja {
+  /* ancho y alto los ajusta app.js según el tamaño del lienzo */
   position: absolute; left: 0; top: -100px; width: 2600px; height: 1280px;
   background: #0b0a09;
   border-left: 6px solid var(--oro); border-right: 6px solid var(--oro);
   box-shadow: 0 0 60px rgba(212, 168, 87, .55);
-  -webkit-transform: translateX(-3200px) skewX(-14deg); transform: translateX(-3200px) skewX(-14deg);
+  -webkit-transform: translateX(-200%) skewX(-14deg); transform: translateX(-200%) skewX(-14deg);
 }
 .hoja-marca {
-  position: absolute; left: 1300px; top: 640px; width: 0; height: 0;
+  position: absolute; left: 1300px; top: 50%; width: 0; height: 0;
 }
 .hoja-marca span {
   position: absolute; left: -400px; top: -60px; width: 800px; text-align: center;
@@ -323,15 +345,16 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
   letter-spacing: .06em; text-transform: uppercase; color: rgba(212, 168, 87, .9);
   -webkit-transform: skewX(14deg); transform: skewX(14deg);
 }
-#postes { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+#postes { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
 #postes div {
-  position: absolute; top: 0; width: 322px; height: 1080px;
+  position: absolute; top: 0; width: 16.8%; height: 100%;
   -webkit-transform: scaleY(0); transform: scaleY(0);
 }
 
 /* ---------- Grano de película ---------- */
 #grano {
   position: absolute; left: -200px; top: -200px; width: 2320px; height: 1480px;
+  width: calc(100% + 400px); height: calc(100% + 400px);
   opacity: .06; pointer-events: none;
 }
 
@@ -343,7 +366,7 @@ body { font-family: "DM Sans", Arial, sans-serif; color: var(--crema); }
 
 /* ---------- Aviso para entrar en pantalla completa ---------- */
 #aviso-fs {
-  position: absolute; left: 50%; top: 860px; width: 760px; margin-left: -380px; display: none;
+  position: absolute; left: 50%; bottom: 88px; width: 760px; margin-left: -380px; display: none;
   padding: 22px 34px 22px 26px; border-radius: 999px;
   background: rgba(12, 11, 10, .88); border: 2px solid rgba(212, 168, 87, .7);
   box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
