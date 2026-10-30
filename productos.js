@@ -104,5 +104,20 @@ var PRODUCTOS = [
     imagen: "media/ejemplo-shampoo.svg",
     video: "",
     activo: true
+  },
+   {
+    nombre: "Shampoo Mentolado",
+    marca: "Producto de ejemplo",
+    categoria: "Cuidado capilar",
+    descripcion: "Limpieza profunda con efecto refrescante para el cuero cabelludo.",
+    caracteristicas: ["Mentol natural", "Control de caspa", "Uso diario"],
+    contenido: "400 ml",
+    precio: 38000,
+    precioAntes: null,
+    etiqueta: null,
+    color: "#2fae86",
+    imagen: "media/image.png",
+    video: "",
+    activo: true
   }
 ];
