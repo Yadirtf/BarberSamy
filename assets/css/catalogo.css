@@ -1,0 +1,242 @@
+/* =========================================================
+   Catálogo para celular — estilos
+   Solo se carga cuando index.html detecta un celular o tablet.
+   Los colores y las fuentes son los mismos de la presentación
+   (están definidos en estilos.css).
+   ========================================================= */
+
+html.modo-catalogo, html.modo-catalogo body {
+  height: auto; min-height: 100%;
+  overflow: visible; overflow-x: hidden;
+  cursor: auto;
+}
+html.modo-catalogo body { background: var(--fondo); -webkit-text-size-adjust: 100%; }
+html.modo-catalogo #stage { display: none; }
+
+#catalogo { display: none; }
+.modo-catalogo #catalogo { display: block; padding-bottom: 96px; }
+
+.cat-envoltura { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+
+/* ---------- Encabezado ---------- */
+.cat-cabecera {
+  position: relative; overflow: hidden;
+  padding: 36px 0 26px;
+  background: radial-gradient(ellipse at 50% 0, rgba(212, 168, 87, .22), rgba(212, 168, 87, 0) 70%);
+  text-align: center;
+}
+.cat-negocio {
+  font-family: "Hombros", Impact, sans-serif; font-weight: 800;
+  font-size: 44px; line-height: .95; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--crema);
+}
+.cat-eslogan {
+  margin-top: 8px;
+  font-family: "Instrument", Georgia, serif; font-style: italic;
+  font-size: 21px; color: var(--oro-claro);
+}
+.cat-linea { width: 60px; height: 2px; margin: 18px auto 0; background: var(--oro); }
+.cat-intro { margin-top: 14px; font-size: 14px; line-height: 1.5; color: rgba(243, 234, 216, .7); }
+
+/* ---------- Filtros por categoría ---------- */
+.cat-filtros {
+  position: -webkit-sticky; position: sticky; top: 0; z-index: 5;
+  background: rgba(12, 11, 10, .96);
+  border-bottom: 1px solid rgba(212, 168, 87, .18);
+}
+.cat-filtros-fila {
+  white-space: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: 12px 16px; max-width: 980px; margin: 0 auto;
+}
+.cat-filtros-fila::-webkit-scrollbar { display: none; }
+.cat-chip {
+  display: inline-block; margin-right: 8px; padding: 8px 15px;
+  border: 1px solid rgba(212, 168, 87, .4); border-radius: 30px;
+  background: transparent; color: var(--crema);
+  font-family: inherit; font-size: 14px; cursor: pointer;
+}
+.cat-chip.activo { background: var(--oro); border-color: var(--oro); color: #1a1408; font-weight: 700; }
+
+/* ---------- Tarjetas de producto ---------- */
+.cat-lista { padding-top: 18px; }
+.cat-lista:after { content: ""; display: table; clear: both; }
+
+.cat-item {
+  position: relative; overflow: hidden;
+  margin-bottom: 18px;
+  border: 1px solid rgba(212, 168, 87, .16); border-radius: 18px;
+  background: #15130f;
+}
+.cat-media {
+  position: relative; height: 260px; overflow: hidden;
+  background: #100e0b;
+}
+.cat-media .brillo {
+  position: absolute; left: 50%; top: 50%; width: 360px; height: 360px;
+  margin-left: -180px; margin-top: -170px; border-radius: 50%;
+}
+.cat-media img {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  padding: 20px; object-fit: contain;
+}
+.cat-media video {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain;
+}
+.cat-sello {
+  position: absolute; left: 14px; top: 14px; z-index: 2;
+  padding: 6px 12px; border-radius: 20px;
+  background: var(--oro); color: #1a1408;
+  font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+}
+.cat-sello.oferta { background: var(--rojo); color: #fff; }
+
+.cat-info { padding: 18px 18px 20px; }
+.cat-marca { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--oro); }
+.cat-nombre {
+  margin-top: 4px;
+  font-family: "Hombros", Impact, sans-serif; font-weight: 700;
+  font-size: 32px; line-height: 1; text-transform: uppercase; color: var(--crema);
+}
+.cat-detalle { margin-top: 6px; font-size: 13px; color: rgba(243, 234, 216, .55); }
+.cat-desc { margin-top: 10px; font-size: 15px; line-height: 1.5; color: rgba(243, 234, 216, .85); }
+.cat-caract { margin-top: 10px; list-style: none; }
+.cat-caract li { position: relative; padding-left: 16px; margin-top: 4px; font-size: 14px; color: rgba(243, 234, 216, .8); }
+.cat-caract li:before {
+  content: ""; position: absolute; left: 0; top: 8px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--oro);
+}
+.cat-precio-caja { margin-top: 14px; }
+.cat-precio { font-family: "Hombros", Impact, sans-serif; font-weight: 800; font-size: 34px; color: var(--oro-claro); }
+.cat-precio.consultar { font-family: "DM Sans", Arial, sans-serif; font-weight: 600; font-size: 17px; }
+.cat-antes { margin-left: 10px; font-size: 17px; text-decoration: line-through; color: rgba(243, 234, 216, .45); }
+
+/* ---------- Botones ---------- */
+.cat-botones { margin-top: 16px; }
+.cat-btn {
+  display: block; width: 100%; margin-top: 10px; padding: 14px 12px;
+  border: 0; border-radius: 12px;
+  font-family: inherit; font-size: 16px; font-weight: 700; line-height: 1.2;
+  text-align: center; text-decoration: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-btn:active { opacity: .8; }
+.cat-btn svg { width: 20px; height: 20px; vertical-align: -4px; margin-right: 8px; fill: currentColor; }
+.cat-btn-carro { background: var(--oro); color: #1a1408; }
+.cat-btn-wa { background: transparent; color: #4fd47f; border: 1.5px solid #25d366; }
+.cat-btn-wa-lleno { background: #25d366; color: #06290f; }
+
+/* Selector de cantidad (cuando el producto ya está en el carrito) */
+.cat-cantidad {
+  margin-top: 10px; height: 50px; overflow: hidden;
+  border: 1.5px solid var(--oro); border-radius: 12px;
+}
+.cat-cantidad button {
+  float: left; width: 56px; height: 100%; border: 0;
+  background: rgba(212, 168, 87, .15); color: var(--oro-claro);
+  font-family: inherit; font-size: 24px; font-weight: 700; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-cantidad button.mas { float: right; }
+.cat-cantidad span {
+  display: block; overflow: hidden; height: 100%;
+  line-height: 47px; text-align: center; font-size: 15px; font-weight: 600; color: var(--crema);
+}
+
+/* Dos columnas en celulares acostados y tablets */
+@media (min-width: 640px) {
+  .cat-item { float: left; width: 48.5%; }
+  .cat-item:nth-child(odd) { margin-right: 3%; clear: left; }
+}
+
+.cat-vacio { padding: 50px 0; text-align: center; color: rgba(243, 234, 216, .6); }
+.cat-pie { clear: both; padding: 20px 0 10px; text-align: center; font-size: 12px; color: rgba(243, 234, 216, .4); }
+
+/* ---------- Barra del carrito (abajo) ---------- */
+.cat-barra {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  padding: 10px 16px; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  background: rgba(12, 11, 10, .97);
+  border-top: 1px solid rgba(212, 168, 87, .3);
+  -webkit-transform: translateY(110%); transform: translateY(110%);
+  -webkit-transition: -webkit-transform .3s ease; transition: transform .3s ease;
+}
+.cat-barra.visible { -webkit-transform: translateY(0); transform: translateY(0); }
+.cat-barra .cat-btn { max-width: 948px; margin: 0 auto; }
+.cat-barra .cat-btn b { float: right; }
+.cat-barra .cat-btn i { font-style: normal; float: left; }
+
+/* ---------- Panel del carrito ---------- */
+.cat-fondo {
+  position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 20;
+  background: rgba(0, 0, 0, .65); display: none;
+}
+.cat-panel {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 21;
+  max-height: 88%; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  max-width: 640px; margin: 0 auto;
+  padding: 20px 18px; padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  background: #15130f; border-radius: 20px 20px 0 0;
+  border-top: 2px solid var(--oro);
+  -webkit-transform: translateY(105%); transform: translateY(105%);
+  -webkit-transition: -webkit-transform .3s ease; transition: transform .3s ease;
+}
+.carrito-abierto .cat-fondo { display: block; }
+.carrito-abierto .cat-panel { -webkit-transform: translateY(0); transform: translateY(0); }
+.carrito-abierto, .carrito-abierto body { overflow: hidden; }
+
+.cat-panel-titulo {
+  font-family: "Hombros", Impact, sans-serif; font-weight: 800; font-size: 30px;
+  text-transform: uppercase; color: var(--crema);
+}
+.cat-cerrar {
+  float: right; width: 38px; height: 38px; border: 0; border-radius: 50%;
+  background: rgba(243, 234, 216, .1); color: var(--crema);
+  font-size: 22px; line-height: 38px; cursor: pointer;
+}
+.cat-fila {
+  padding: 14px 0; border-bottom: 1px solid rgba(243, 234, 216, .1);
+}
+.cat-fila:after { content: ""; display: table; clear: both; }
+.cat-fila-img {
+  float: left; width: 60px; height: 60px; margin-right: 12px; overflow: hidden;
+  border-radius: 10px; background: #100e0b;
+}
+.cat-fila-img img, .cat-fila-img video { width: 100%; height: 100%; object-fit: contain; }
+.cat-fila-img video { object-fit: cover; }
+.cat-fila-txt { overflow: hidden; }
+.cat-fila-nombre { font-weight: 700; font-size: 15px; color: var(--crema); }
+.cat-fila-sub { margin-top: 2px; font-size: 13px; color: rgba(243, 234, 216, .55); }
+.cat-fila .cat-cantidad { width: 150px; height: 40px; margin-top: 8px; float: left; }
+.cat-fila .cat-cantidad button { width: 42px; font-size: 20px; }
+.cat-fila .cat-cantidad span { line-height: 37px; }
+.cat-quitar {
+  float: right; margin-top: 16px; border: 0; background: transparent;
+  color: rgba(243, 234, 216, .5); font-family: inherit; font-size: 13px; text-decoration: underline; cursor: pointer;
+}
+.cat-total { padding: 16px 0 6px; font-size: 16px; color: var(--crema); }
+.cat-total b { float: right; font-family: "Hombros", Impact, sans-serif; font-size: 28px; color: var(--oro-claro); }
+.cat-nota-total { font-size: 12px; color: rgba(243, 234, 216, .5); }
+.cat-campo { display: block; margin-top: 14px; font-size: 13px; color: rgba(243, 234, 216, .7); }
+.cat-campo input, .cat-campo textarea {
+  display: block; width: 100%; margin-top: 6px; padding: 12px;
+  border: 1px solid rgba(243, 234, 216, .2); border-radius: 10px;
+  background: #0f0d0b; color: var(--crema);
+  font-family: inherit; font-size: 16px;
+}
+.cat-campo textarea { height: 70px; resize: vertical; }
+.cat-vaciar {
+  display: block; margin: 14px auto 0; border: 0; background: transparent;
+  color: rgba(243, 234, 216, .45); font-family: inherit; font-size: 13px; text-decoration: underline; cursor: pointer;
+}
+
+/* Aviso corto "Agregado al carrito" */
+.cat-aviso {
+  position: fixed; left: 50%; bottom: 90px; z-index: 30;
+  width: 260px; margin-left: -130px; padding: 12px 16px;
+  border-radius: 30px; background: var(--crema); color: #1a1408;
+  font-size: 14px; font-weight: 700; text-align: center;
+  opacity: 0; visibility: hidden;
+  -webkit-transition: opacity .25s, visibility .25s; transition: opacity .25s, visibility .25s;
+}
+.cat-aviso.visible { opacity: 1; visibility: visible; }

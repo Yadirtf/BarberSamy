@@ -33,8 +33,10 @@ var CONFIG = {
   mostrarMarcaCada: 5,                    // cada cuántos productos aparece la pantalla del local (0 = nunca)
   orden: "aleatorio",                     // "aleatorio" o "fijo" (el orden de esta lista)
 
-  whatsapp: "573125568963",                           // número con indicativo, sin + ni espacios: "573001234567". Vacío = sin QR
+  whatsapp: "573125568963",                           // número con indicativo, sin + ni espacios: "573001234567". Vacío = sin QR ni botones de WhatsApp
+                                                      // (a este número llegan los pedidos del catálogo del celular)
   mensajeWhatsapp: "Hola! Vi en la pantalla de la barbería este producto: ",
+  textoCatalogo: "Elige tus productos y haz tu pedido por WhatsApp.",   // texto bajo el nombre en el catálogo del celular
 
   moneda: "$",
   separadorMiles: ".",

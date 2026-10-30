@@ -9,6 +9,26 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0c0b0a">
 <link rel="stylesheet" href="assets/css/estilos.css">
+<script>
+  // ¿Celular o televisor? Se decide por el tamaño de la pantalla, antes de dibujar nada.
+  // Celular o tablet (pantalla táctil y pequeña): catálogo con carrito.
+  // Televisor o computador: la presentación de siempre.
+  // Para forzar un modo al probar: index.html?modo=catalogo  o  index.html?modo=tv
+  (function () {
+    var forzado = (location.search.match(/[?&]modo=(catalogo|tv)/) || [])[1];
+    var ua = navigator.userAgent || '';
+    var esTV = /smart-?tv|tizen|web0s|webos|netcast|hbbtv|bravia|viera|vidaa|roku|crkey|googletv|android tv|aft[a-z]|\btv\b/i.test(ua);
+    var lado = Math.min(screen.width || 9999, screen.height || 9999);
+    var tactil = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches
+      : ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    var movil = !esTV && (lado < 500 || (tactil && lado < 900));
+    window.MODO = forzado || (movil ? 'catalogo' : 'tv');
+    if (window.MODO === 'catalogo') {
+      document.documentElement.className += ' modo-catalogo';
+      document.write('<link rel="stylesheet" href="assets/css/catalogo.css?v=1">');
+    }
+  })();
+</script>
 </head>
 <body>
 
@@ -39,10 +59,15 @@
   </div>
 </div>
 
+<div id="catalogo"></div>
 <div id="error"></div>
 
 <!-- Video negro diminuto en bucle: evita que el TV apague la pantalla o active su protector -->
 <video id="despierto" src="assets/sistema/despierto.mp4" muted loop autoplay playsinline></video>
+<script>
+  // En el celular no hace falta mantener la pantalla encendida
+  if (window.MODO === 'catalogo') { var vd = document.getElementById('despierto'); vd.parentNode.removeChild(vd); }
+</script>
 
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/qrcode.js"></script>
@@ -65,7 +90,7 @@
     datos.src = 'productos.js?v=' + new Date().getTime();
     datos.onload = function () {
       var app = document.createElement('script');
-      app.src = 'assets/js/app.js?v=1';
+      app.src = window.MODO === 'catalogo' ? 'assets/js/catalogo.js?v=1' : 'assets/js/app.js?v=1';
       document.body.appendChild(app);
     };
     datos.onerror = function () {

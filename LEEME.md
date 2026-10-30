@@ -1,6 +1,7 @@
 # Vitrina para el TV de la barbería
 
-Presentación en bucle, hecha para el navegador del televisor. Funciona sin instalar nada:
+Presentación en bucle, hecha para el navegador del televisor. **El mismo link, abierto desde un
+celular, muestra un catálogo con carrito y pedidos por WhatsApp** (ver más abajo). Funciona sin instalar nada:
 son archivos estáticos (HTML, CSS y JavaScript) que se suben a cualquier hosting gratuito.
 
 ## Qué hay en la carpeta
@@ -10,7 +11,7 @@ son archivos estáticos (HTML, CSS y JavaScript) que se suben a cualquier hostin
 | `index.html` | La página que se abre en el TV |
 | `productos.js` | **La lista de productos y la configuración. Es lo único que se edita.** |
 | `media/` | Fotos y videos de los productos |
-| `assets/` | Diseño, animaciones, fuentes y librerías (no hace falta tocarlo) |
+| `assets/` | Diseño, animaciones, fuentes y librerías (no hace falta tocarlo). `catalogo.js` y `catalogo.css` son el catálogo del celular |
 
 ## Agregar, quitar o cambiar productos
 
@@ -25,6 +26,29 @@ Si te equivocas con una coma o una comilla, la pantalla muestra en qué línea e
 En `CONFIG` (arriba de `productos.js`) cambias el nombre del local, el eslogan, los segundos
 por producto, el orden (aleatorio o fijo) y el número de WhatsApp. Con el número puesto,
 aparece un **QR en cada producto** para que el cliente lo pida desde la silla.
+
+## Catálogo para celular (mismo link)
+
+La página mira el tamaño de la pantalla al abrirse:
+
+- **Celular o tablet** (pantalla táctil y pequeña): muestra el catálogo de productos.
+- **Televisor o computador**: muestra la presentación de siempre.
+
+El dueño puede compartir el mismo link con sus clientes. En el catálogo cada producto tiene:
+
+- **Agregar al carrito**: luego se puede cambiar la cantidad con  -  y  +.
+- **Preguntar por WhatsApp**: abre el chat del local con el nombre, marca, contenido y precio ya escritos.
+
+Abajo aparece **Ver carrito**, con el total. Desde ahí el cliente escribe su nombre (opcional)
+y una nota, y **Enviar pedido por WhatsApp** manda la lista completa, ordenada y con el total.
+Los mensajes van sin emojis. El carrito se guarda en el celular aunque cierre la página.
+
+Todo sale de `productos.js`: los mismos productos, el mismo número de `whatsapp` de `CONFIG`
+(ahí llegan los pedidos) y `textoCatalogo` para la frase debajo del nombre del local.
+Si un producto no tiene precio, el pedido dice "Precio: Por confirmar".
+
+Para probar un modo a la fuerza (por ejemplo, ver el catálogo en el computador):
+agrega al final del link `?modo=catalogo`, o `?modo=tv` para la presentación.
 
 ## Cómo preparar las fotos (con IA)
 
