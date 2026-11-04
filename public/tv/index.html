@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vitrina</title>
+<link rel="manifest" href="/tv/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0c0b0a">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/tv/tv.css?v=2">
+</head>
+<body>
+
+<div id="stage">
+  <div id="ambiente">
+    <div class="bokeh b1"></div><div class="bokeh b2"></div><div class="bokeh b3"></div>
+    <div class="bokeh b4"></div><div class="bokeh b5"></div><div class="bokeh b6"></div>
+  </div>
+
+  <div id="slides"></div>
+
+  <div id="hud">
+    <div id="hud-negocio"></div>
+    <div id="hud-contador"><span id="cnt-actual">01</span><i></i><span id="cnt-total">01</span></div>
+    <div id="progreso"><div id="progreso-rayas"></div><div id="progreso-tapa"></div></div>
+  </div>
+
+  <div id="transicion">
+    <div id="navaja"><div class="hoja"><div class="hoja-marca"><span></span></div></div></div>
+    <div id="postes"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  </div>
+
+  <div id="grano"></div>
+  <div id="pausa">PAUSA</div>
+  <div id="aviso-fs">
+    <span class="fs-boton"><span class="fs-anillo"></span>OK</span>
+    <span class="fs-texto"><b>Presiona OK en el control</b>para ver en pantalla completa</span>
+  </div>
+</div>
+
+<div id="error"></div>
+
+<!-- Video negro diminuto en bucle: evita que el TV apague la pantalla o active su protector -->
+<video id="despierto" src="/tv/despierto.mp4" muted loop autoplay playsinline></video>
+
+<script src="/tv/vendor/gsap.min.js"></script>
+<script src="/tv/vendor/qrcode.js"></script>
+<script>
+  window.onerror = function (msg, archivo, linea) {
+    var e = document.getElementById('error');
+    if (!e || e.style.display === 'block') return;
+    e.innerHTML = '<h1>Error en la vitrina</h1><p>' + String(msg).replace(/</g, '&lt;') + ' (línea ' + linea + ')</p><p>Se reintentará en un minuto.</p>';
+    e.style.display = 'block';
+    setTimeout(function () { location.reload(); }, 60000);
+  };
+</script>
+<script src="/tv/tv.js?v=2"></script>
+</body>
+</html>

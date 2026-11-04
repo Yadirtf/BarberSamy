@@ -1,80 +1,117 @@
-# Vitrina para el TV de la barbería
+# Tienda Barbería Samy
 
-Presentación en bucle, hecha para el navegador del televisor. Funciona sin instalar nada:
-son archivos estáticos (HTML, CSS y JavaScript) que se suben a cualquier hosting gratuito.
+Mini tienda virtual, panel de administración y vitrina para el televisor del local, en una sola aplicación.
 
-## Qué hay en la carpeta
+- **Tienda** (`/`): catálogo de todas las revistas (Yanbal, Ésika, Natura, Naprolap…) y de la vitrina del local, con buscador y filtros. El cliente arma su pedido y lo envía por WhatsApp con un botón. **Sin precios**: el pedido va por revista y código, y la tienda confirma el precio con el catálogo vigente.
+- **Panel** (`/admin`): productos, revistas y campañas, categorías, pedidos con su estado, lista de lo que hay que pedir a cada proveedor, importación y exportación CSV, orden del televisor y configuración.
+- **Televisor** (`/tv`): la vitrina de siempre, ahora alimentada por el panel y ordenada por revista, con modo liviano para Smart TV básicos.
 
-| Archivo / carpeta | Para qué sirve |
+Cómo está organizado el código y la base de datos: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Cómo preparar fotos y videos: [GUIA-PROMPTS-IA.md](GUIA-PROMPTS-IA.md).
+
+## Requisitos
+
+- Node.js 20 o superior.
+- Cuentas gratuitas en MongoDB Atlas, Cloudinary y Cloudflare. Conviene crearlas con un correo del negocio.
+
+## Trabajar en local
+
+```bash
+npm install
+cp .dev.vars.example .env.local      # y llena los valores
+cp .dev.vars.example .dev.vars       # los mismos valores, para `npm run preview`
+npm run db:semilla                   # índices, categorías, revistas (y --ejemplos para 3 productos de muestra)
+npm run crear-admin -- tu@correo.com "Tu nombre" "una-contraseña-larga"
+npm run dev                          # http://localhost:3000  ·  /admin  ·  /tv
+```
+
+Otros comandos:
+
+| Comando | Para qué |
 |---|---|
-| `index.html` | La página que se abre en el TV |
-| `productos.js` | **La lista de productos y la configuración. Es lo único que se edita.** |
-| `media/` | Fotos y videos de los productos |
-| `assets/` | Diseño, animaciones, fuentes y librerías (no hace falta tocarlo) |
+| `npm test` | Pruebas del dominio y los casos de uso (no necesitan base de datos) |
+| `npm run lint` | Verificación de tipos |
+| `npm run build` | Compilación de Next.js |
+| `npm run preview` | Compila para Cloudflare y lo corre en local con Wrangler |
+| `npm run deploy` | Compila y publica en Cloudflare |
+| `npm run db:indices` | Crea o actualiza los índices de Mongo |
 
-## Agregar, quitar o cambiar productos
+## Variables de entorno
 
-1. Pon la foto o el video en `media/` (ej. `media/cera-roja.png`).
-2. Abre `productos.js` con el Bloc de notas o VS Code.
-3. Copia un bloque `{ ... },` completo, pégalo debajo y cambia los datos.
-4. Para ocultar un producto sin borrarlo: `activo: false`.
-5. Guarda y vuelve a subir la carpeta. El TV toma los cambios solo (se actualiza cada 60 min).
+| Variable | Dónde | Para qué |
+|---|---|---|
+| `MONGODB_URI` | secreto | Cadena `mongodb+srv://…` del usuario `tienda_app` |
+| `MONGODB_DB` | variable | Nombre de la base (por defecto `tienda`) |
+| `SESSION_SECRET` | secreto | Texto aleatorio de 32 caracteres o más para firmar la sesión del panel |
+| `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | secreto | Firmar las subidas de fotos y videos |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | variable de compilación | Armar las URLs de las imágenes |
+| `NEXT_PUBLIC_SITE_URL` | variable de compilación | Dirección pública de la tienda (enlaces del QR y vista previa al compartir) |
 
-Si te equivocas con una coma o una comilla, la pantalla muestra en qué línea está el error.
+## Publicar en Cloudflare
 
-En `CONFIG` (arriba de `productos.js`) cambias el nombre del local, el eslogan, los segundos
-por producto, el orden (aleatorio o fijo) y el número de WhatsApp. Con el número puesto,
-aparece un **QR en cada producto** para que el cliente lo pida desde la silla.
+Los pasos 1 a 3 se hacen una sola vez.
 
-## Cómo preparar las fotos (con IA)
+### 1. MongoDB Atlas
 
-- **PNG con fondo transparente** (quita el fondo con remove.bg, Photoroom o Canva). La
-  página pone el fondo, el brillo de color, la sombra y el reflejo dorado sobre el producto.
-- Producto de frente, bien iluminado, unos **1200 px de alto**, menos de 500 KB
-  (comprime en squoosh.app; WebP también sirve).
-- `color`: elige el color principal del empaque; con él se pinta el brillo de fondo.
-- Descripción corta (1 o 2 frases) y máximo 4 características: se lee desde lejos.
+1. Crear un cluster **M0 (Free)**, proveedor AWS, región **us-east-1**.
+2. *Database Access*: usuario `tienda_app` con rol `readWrite` solo sobre la base `tienda`, contraseña larga generada.
+3. *Network Access*: agregar `0.0.0.0/0` (Cloudflare no tiene IP fija; la seguridad la dan el usuario y la contraseña).
+4. *Connect → Drivers*: copiar la cadena `mongodb+srv://tienda_app:<clave>@…/tienda`.
 
-## Videos
+### 2. Cloudinary
 
-- MP4 (H.264), 720p o 1080p, menos de 15 MB. Sin sonido (los TV solo reproducen videos silenciados automáticamente).
-- La pantalla dura lo que dure el video (máximo 60 s).
-- Si un producto tiene `video`, se usa el video en lugar de la foto.
+En el Dashboard copiar *Cloud name*, *API Key* y *API Secret*. Las fotos se suben desde el panel a las carpetas `tienda/productos`, `tienda/videos` y `tienda/revistas`.
 
-## Pantalla completa
+### 3. Cloudflare
 
-Por seguridad, ningún navegador deja abrir pantalla completa sin que alguien presione una tecla o toque la pantalla.
-Por eso, al abrir el link aparece un aviso dorado: **presiona OK una vez en el control** y la presentación
-pasa a pantalla completa sin interrumpirse. Si alguien sale con "Atrás", el aviso vuelve a aparecer.
-En Android TV también se puede "Agregar a la pantalla de inicio" y se abre directo en pantalla completa.
+```bash
+npx wrangler login
+npx wrangler kv namespace create NEXT_INC_CACHE_KV   # copiar el id en wrangler.jsonc
+npx wrangler secret put MONGODB_URI
+npx wrangler secret put SESSION_SECRET
+npx wrangler secret put CLOUDINARY_API_KEY
+npx wrangler secret put CLOUDINARY_API_SECRET
+```
 
-## Control remoto
+En `wrangler.jsonc` llenar `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` y `NEXT_PUBLIC_SITE_URL`. Luego:
 
-- La primera tecla activa la pantalla completa. Después: **→** siguiente · **←** anterior · **OK** pausa / continúa.
+```bash
+npm run deploy
+```
 
-## Probarlo en el computador
+Wrangler muestra la dirección, por ejemplo `https://tienda-samy.<cuenta>.workers.dev`.
 
-Doble clic en `index.html` (Chrome o Edge), y **F11** para pantalla completa.
+**Despliegue automático desde GitHub**: en Cloudflare, *Workers & Pages → tienda-samy → Settings → Builds → Connect*, repo BarberSamy, rama `main`. Build command `npx opennextjs-cloudflare build`, deploy command `npx wrangler deploy`. En las variables de compilación poner `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` y `NEXT_PUBLIC_SITE_URL`. Cada push a `main` publica solo y las otras ramas generan una URL de vista previa.
 
-## Publicarlo para el TV (gratis)
+**Dominio propio (opcional)**: *Settings → Domains & Routes → Add Custom Domain*.
 
-Opción más fácil: **Netlify Drop** (https://app.netlify.com/drop): arrastra la carpeta
-`presentacion` completa y te da un link. Crea una cuenta gratis para que el link no caduque
-y para poder actualizarlo arrastrando la carpeta de nuevo.
+### Límites del plan gratis
 
-Otras opciones: GitHub Pages o Cloudflare Pages.
+Cloudflare Workers gratis da 100.000 peticiones al día y 10 ms de CPU por petición. La tienda sirve los datos desde caché (KV), las imágenes vienen de Cloudinary y el TV es estático, así que Mongo casi no se consulta. Si en *Workers → Metrics* aparecen errores por CPU, el plan Workers Paid (5 USD/mes) sube el límite sin cambiar código. El paquete actual pesa unos 1,6 MB comprimido (el límite gratis es 3 MB).
 
-En el TV: abre el navegador, entra al link, ponlo en pantalla completa y guárdalo en favoritos.
-Recomendado en el TV: desactivar el apagado automático y el protector de pantalla en Ajustes
-(la página ya intenta mantener la pantalla encendida, pero algunos modelos lo ignoran).
+Atlas M0 no hace copias de seguridad: en *Panel → Configuración → Copia de seguridad* se descarga todo en JSON. Hazlo cada semana.
 
-Si el TV corta los bordes de la imagen, cambia `ajustePantalla` a `0.95`.
-Si el TV va lento, pon `efectoGrano: false`.
+### Verificación después de publicar
 
-## Tecnología
+1. La tienda abre en un celular con datos móviles.
+2. Un pedido de prueba queda en *Panel → Pedidos* y abre WhatsApp con el mensaje correcto.
+3. Subir una foto desde el panel y verla en la tienda.
+4. En el TV abrir `/tv/diagnostico` (tomar foto de la pantalla) y luego `/tv`.
 
-- HTML + CSS + JavaScript puro, escrito para navegadores de Smart TV (Samsung Tizen, LG webOS, Android TV).
-- **GSAP 3** para las animaciones (la librería profesional estándar, gratuita). Solo anima
-  `transform` y `opacity`, que el TV acelera con la tarjeta gráfica.
-- Lienzo base de 1920×1080 que se escala a cualquier pantalla y se estira a lo ancho o alto si no es 16:9 (sin franjas ni cortes).
-- Fuentes incluidas en la carpeta (Big Shoulders Display, DM Sans, Instrument Serif): no dependen de internet.
+## Uso diario
+
+### Cargar productos
+
+- **Uno por uno**: *Panel → Productos → Nuevo*. Revista, código, nombre, categoría, fotos (se achican solas desde el celular) y si sale en la tienda y en el TV.
+- **En bloque**: *Panel → Importar / exportar*. CSV con las columnas `revista, codigo, nombre, linea, categoria, subcategoria, contenido, descripcion, caracteristicas, campana, pagina_pdf, imagen, disponibilidad, etiqueta, visible_tienda, visible_tv`. Primero *Revisar* (no guarda nada) y luego *Importar*. Si el código ya existe se actualiza; si no, se crea. Al terminar lista los productos que no vinieron en el archivo para ocultarlos de un clic.
+- **Cambio de campaña**: importar el CSV de la campaña nueva con "Marcar la campaña como vigente" y ocultar los que salieron.
+
+### Pedidos
+
+Los pedidos llegan como **Nuevo** al presionar el botón, aunque el cliente no termine de enviar el WhatsApp. Flujo: Nuevo → Confirmado → Pedido al proveedor → Llegó → Entregado (o Cancelado). *Qué pedir a cada proveedor* junta los confirmados por revista y código, con un botón para copiar la lista y enviarla a la asesora.
+
+### Televisor
+
+*Panel → Televisor*: qué revistas salen y en qué orden, el orden de los productos dentro de cada revista, segundos por producto, tope por revista y modo liviano. El TV toma los cambios solo en menos de 5 minutos.
+
+En el TV: abrir el navegador, entrar a `https://<tu-tienda>/tv`, presionar **OK** una vez para pantalla completa y guardarlo en favoritos. Control remoto: **→** siguiente, **←** anterior, **OK** pausa. Si el TV corta los bordes, cambia *Ajuste de pantalla* a 95 %. Si va lento, pon *Modo liviano: Siempre*.

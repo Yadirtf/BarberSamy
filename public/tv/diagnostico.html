@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Diagnóstico del TV</title>
+<style>
+  body { margin: 0; padding: 4vh 5vw; background: #0c0b0a; color: #f3ead8; font-family: Arial, sans-serif; font-size: 2.2vw; line-height: 1.4; }
+  h1 { color: #d4a857; font-size: 3.4vw; margin: 0 0 2vh; }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 1vh 1vw; border-bottom: 1px solid #3a3226; vertical-align: top; }
+  td:first-child { color: #b9ad97; width: 32%; }
+  .ok { color: #7ee2b2; } .mal { color: #ff9c8f; } .medio { color: #f1d595; }
+  #veredicto { margin-top: 3vh; padding: 2vh 2vw; border: 2px solid #d4a857; border-radius: 1vw; }
+</style>
+</head>
+<body>
+<h1>Diagnóstico del televisor</h1>
+<p>Déjalo abierto 10 segundos. Toma una foto de esta pantalla y envíala a quien administra la tienda.</p>
+<table id="tabla"></table>
+<div id="veredicto">Midiendo…</div>
+<script>
+(function () {
+  var filas = [];
+  function fila(nombre, valor, clase) { filas.push('<tr><td>' + nombre + '</td><td class="' + (clase || '') + '">' + valor + '</td></tr>'); }
+  function pintar() { document.getElementById('tabla').innerHTML = filas.join(''); }
+  function soporta(tipo) {
+    var v = document.createElement('video');
+    var r = v.canPlayType ? v.canPlayType(tipo) : '';
+    return r ? '<span class="ok">' + r + '</span>' : '<span class="mal">no</span>';
+  }
+  var ua = navigator.userAgent;
+  var chrome = /Chrome\/(\d+)/.exec(ua);
+  var versionChrome = chrome ? parseInt(chrome[1], 10) : 0;
+  fila('Navegador', ua);
+  fila('Motor Chrome', versionChrome ? versionChrome : 'desconocido', versionChrome >= 70 ? 'ok' : (versionChrome >= 50 ? 'medio' : 'mal'));
+  fila('Pantalla (dispositivo)', screen.width + ' × ' + screen.height);
+  fila('Área de dibujo real', window.innerWidth + ' × ' + window.innerHeight + ' (escala ' + (window.devicePixelRatio || 1) + ')');
+  fila('Memoria aproximada', navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'no informa');
+  fila('Núcleos', navigator.hardwareConcurrency || 'no informa');
+  fila('Video MP4 H.264', soporta('video/mp4; codecs="avc1.42E01E"'));
+  fila('Video WebM VP9', soporta('video/webm; codecs="vp9"'));
+  var webp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0;
+  fila('Imágenes WebP', webp ? '<span class="ok">sí</span>' : '<span class="medio">no (se usará JPG)</span>');
+  fila('Pantalla completa', (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen) ? '<span class="ok">sí</span>' : '<span class="mal">no</span>');
+  var ls = false; try { localStorage.setItem('x', '1'); localStorage.removeItem('x'); ls = true; } catch (e) {}
+  fila('Guardar lista sin internet', ls ? '<span class="ok">sí</span>' : '<span class="mal">no</span>');
+  var fpsGuardado = null; try { fpsGuardado = localStorage.getItem('tv-samy:fps'); } catch (e) {}
+  if (fpsGuardado) fila('FPS medidos por la vitrina', fpsGuardado);
+  pintar();
+
+  var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+  var caja = document.createElement('div');
+  caja.style.cssText = 'position:fixed;right:4vw;top:4vh;width:6vw;height:6vw;background:#d4a857;border-radius:50%';
+  document.body.appendChild(caja);
+  if (!raf) { document.getElementById('veredicto').innerHTML = '<b class="mal">Navegador muy antiguo:</b> usa modo liviano “Siempre” o un TV Box Android.'; return; }
+  var cuadros = 0, inicio = 0;
+  function paso(t) {
+    if (!inicio) inicio = t;
+    cuadros++;
+    var x = Math.sin((t - inicio) / 300) * 20;
+    caja.style.transform = caja.style.webkitTransform = 'translateX(' + x + 'vw)';
+    if (t - inicio < 10000) { raf(paso); return; }
+    var fps = Math.round(cuadros * 1000 / (t - inicio));
+    fila('Cuadros por segundo', fps, fps >= 45 ? 'ok' : (fps >= 30 ? 'medio' : 'mal'));
+    pintar();
+    var v = document.getElementById('veredicto');
+    if (fps >= 45 && versionChrome >= 70) v.innerHTML = '<b class="ok">Bien.</b> El TV puede usar las animaciones completas (modo liviano: Automático).';
+    else if (fps >= 30) v.innerHTML = '<b class="medio">Aceptable.</b> Deja el modo liviano en Automático; si se ve a saltos, ponlo en Siempre.';
+    else v.innerHTML = '<b class="mal">TV lento.</b> En el panel, Televisor → Modo liviano: Siempre. Si aun así va lento, conviene un TV Box Android.';
+  }
+  raf(paso);
+})();
+</script>
+</body>
+</html>
