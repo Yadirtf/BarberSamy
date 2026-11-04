@@ -18,11 +18,11 @@ Estética de barbería premium, cálida y elegante.
 - Por lo mismo, la foto **no debe traer sombra, reflejo, piso ni decoración**: se duplicarían con los de la página.
 - Tamaño final: unos **1200 px de alto**, producto ocupando casi todo el alto, menos de 500 KB.
 
-> Nota: en `media/` hay un `image.jpg` de 1024×1024 con fondo. Así como está no sirve bien para la pantalla con foto; pásalo por el prompt 1A y luego quita el fondo.
+> Nota: una foto JPG con fondo no sirve bien para la pantalla con foto; pásala por el prompt 1A y luego quita el fondo.
 
 ### Pantalla con VIDEO
 - El video llena **toda la pantalla (16:9)** y se recorta si el TV no es 16:9.
-- Encima se pone un **degradado oscuro abajo y a la izquierda**. Ahí van el nombre (letras enormes), la descripción y las etiquetas. Abajo a la derecha va el precio y el QR. Arriba a la derecha, el sello giratorio ("Nuevo", "Oferta").
+- Encima se pone un **degradado oscuro abajo y a la izquierda**. Ahí van el nombre (letras enormes), la descripción y las etiquetas. Abajo a la derecha van el código del producto y el QR (la vitrina no muestra precios). Arriba a la derecha, el sello giratorio ("Nuevo", "Oferta").
 - Por eso el producto debe quedar **en la mitad derecha, de la mitad de la pantalla hacia arriba**, con la **izquierda y la parte de abajo oscuras y vacías**.
 - Al empezar, la página hace un zoom de 1.12 → 1: deja aire en los bordes.
 - El video se reproduce **una sola vez** (no en bucle) y queda quieto 1,5 s en el último cuadro. Ideal **8 a 15 s**. Máximo 60 s.
@@ -33,7 +33,7 @@ Estética de barbería premium, cálida y elegante.
 
 ## 2. Prompts para FOTO del producto
 
-Antes de usarlos, define dos datos del producto (los mismos de `productos.js`):
+Antes de usarlos, define dos datos del producto (los mismos que llenas en el panel, en la ficha del producto):
 - **[PRODUCTO]**: ej. "mascarilla capilar Natura Tododia Cronocapilar Repara, tarro de 250 ml"
 - **[COLOR]**: el color principal del empaque, ej. "rosado coral"
 
@@ -77,7 +77,7 @@ Foto de producto de estudio, hiperrealista: [PRODUCTO], envase en tono [COLOR], 
    (Las IA de imagen no entregan transparencia real; por eso se pide fondo blanco liso, que se quita limpio.)
 2. **Recortar** el espacio vacío sobrante y dejar unos **1200 px de alto**.
 3. **Comprimir** en squoosh.app (PNG o WebP con transparencia) a menos de 500 KB.
-4. Guardar en `media/` y poner en `productos.js`: `imagen: "media/nombre.png"`.
+4. Subir la foto desde el panel: Productos → el producto → Fotos y video → Subir fotos.
 5. En `color:` pon el código HEX del color principal del envase (el brillo de fondo sale de ahí).
 
 **Revisa que:** el fondo sea transparente (cuadros grises en el visor), no haya sombra pegada abajo, nada esté cortado y el texto de la etiqueta sea el real.
@@ -144,9 +144,9 @@ audio, music, sound, voice, text, subtitles, captions, watermark, logo overlay, 
 1. Revisa la etiqueta: si la IA la deformó, prueba otra vez o usa una foto más nítida como primer cuadro.
 2. **Quita la pista de audio** (aunque la IA diga que no tiene sonido, a veces la trae vacía o con ruido, y pesa):
    - Fácil: abre el video en **Clipchamp** (viene en Windows) o CapCut → silencia/quita el audio → exporta en 1080p.
-   - Con ffmpeg: `ffmpeg -i entrada.mp4 -an -c:v libx264 -crf 23 -preset slow -movflags +faststart media/producto.mp4`
+   - Con ffmpeg: `ffmpeg -i entrada.mp4 -an -c:v libx264 -crf 23 -preset slow -movflags +faststart producto.mp4`
 3. Que pese **menos de 15 MB** y dure entre **8 y 15 s** (máximo 60).
-4. Guárdalo en `media/` y en `productos.js` pon `video: "media/producto.mp4"`. Llena también `color:` con el color del envase (pinta la rayita y el sello).
+4. Súbelo desde el panel: Productos → el producto → Fotos y video → Subir video. Elige también el color del brillo de fondo con el color del envase (pinta la rayita y el sello).
 5. Mira cómo queda en el PC: el nombre del producto (abajo a la izquierda) debe leerse bien y no tapar el producto.
 
 ---
