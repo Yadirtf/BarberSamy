@@ -1,0 +1,42 @@
+{
+  "name": "tienda-samy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mini tienda virtual, panel de administración y vitrina TV de Barbería Samy",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "db:indices": "tsx scripts/crear-indices.ts",
+    "db:semilla": "tsx scripts/semilla.ts",
+    "crear-admin": "tsx scripts/crear-admin.ts"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.16",
+    "jose": "^6.2.0",
+    "mongodb": "^6.22.0",
+    "next": "15.5.29",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.157.0"
+  },
+  "overrides": {
+    "@aws-sdk/nested-clients": "3.997.54"
+  }
+}

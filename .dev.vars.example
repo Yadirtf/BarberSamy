@@ -1,0 +1,9 @@
+# Copia este archivo como .dev.vars (y como .env.local para `npm run dev`).
+# Nunca subas los archivos con valores reales a GitHub.
+MONGODB_URI=mongodb+srv://tienda_app:CLAVE@cluster0.xxxxx.mongodb.net/tienda
+MONGODB_DB=tienda
+SESSION_SECRET=cadena-larga-y-aleatoria-de-al-menos-32-caracteres
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000

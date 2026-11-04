@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tienda-samy",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "tienda-samy" }],
+  // Crear con: npx wrangler kv namespace create NEXT_INC_CACHE_KV  y pegar aquí el id.
+  "kv_namespaces": [{ "binding": "NEXT_INC_CACHE_KV", "id": "REEMPLAZAR_CON_ID_DEL_KV" }],
+  "observability": { "enabled": true },
+  "vars": {
+    "MONGODB_DB": "tienda",
+    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "",
+    "NEXT_PUBLIC_SITE_URL": ""
+  }
+  // Secretos (npx wrangler secret put NOMBRE): MONGODB_URI, SESSION_SECRET,
+  // CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+}
