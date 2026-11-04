@@ -10,11 +10,11 @@
   },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "tienda-samy" }],
   // Crear con: npx wrangler kv namespace create NEXT_INC_CACHE_KV  y pegar aquí el id.
-  "kv_namespaces": [{ "binding": "NEXT_INC_CACHE_KV", "id": "REEMPLAZAR_CON_ID_DEL_KV" }],
+  "kv_namespaces": [{ "binding": "NEXT_INC_CACHE_KV", "id": "4a836ac3576a41f5b923ae28c2035d4d" }],
   "observability": { "enabled": true },
   "vars": {
     "MONGODB_DB": "tienda",
-    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "",
+    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "xcqmzcam",
     "NEXT_PUBLIC_SITE_URL": ""
   }
   // Secretos (npx wrangler secret put NOMBRE): MONGODB_URI, SESSION_SECRET,
