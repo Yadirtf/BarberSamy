@@ -174,6 +174,23 @@ describe('pedidos', () => {
   });
 });
 
+describe('fotos por código', () => {
+  it('pone la foto como principal, no la duplica y avisa si el código no existe', async () => {
+    const d = dependenciasEnMemoria();
+    const { yanbal, ccori } = await preparar(d);
+    const p = casosProductos(d);
+    const nueva = { proveedor: 'cloudinary' as const, ref: 'tienda/productos/abc', tipo: 'imagen' as const };
+    await p.agregarFotoPorCodigo(yanbal.id, '12345', nueva);
+    const otraVez = await p.agregarFotoPorCodigo(yanbal.id, ' 12345 ', nueva);
+    expect(otraVez.imagenes.map((m) => m.ref)).toEqual(['tienda/productos/abc', 'tienda/productos/yanbal-12345']);
+    expect((await d.productos.porId(ccori.id))!.imagenes[0].ref).toBe('tienda/productos/abc');
+    await expect(p.agregarFotoPorCodigo(yanbal.id, '999', nueva)).rejects.toThrow(/999 no existe/);
+    await expect(p.agregarFotoPorCodigo(yanbal.id, '12345', { ...nueva, tipo: 'video' })).rejects.toThrow(ErrorDominio);
+    const lista = await p.listarParaFotos(yanbal.id);
+    expect(lista.find((x) => x.codigo === '12345')?.fotos).toBe(2);
+  });
+});
+
 describe('importación CSV', () => {
   let d: Deps;
   beforeEach(() => { d = dependenciasEnMemoria(); });
