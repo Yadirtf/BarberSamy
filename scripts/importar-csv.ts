@@ -8,19 +8,35 @@
  *   npm run importar -- --revisar catalogos/*.csv                        (solo revisa, no guarda)
  *   npm run importar -- --sin-vigente archivo.csv                        (no marca la campaña como vigente)
  *
+ *   npm run importar -- catalogos/csv                                    (todos los .csv de la carpeta)
+ *
+ * PowerShell y cmd de Windows no expanden "*.csv", así que el script lo hace por su cuenta.
  * Es seguro repetirlo: cada producto se identifica por revista + código y se actualiza.
  * La tienda muestra los cambios en máximo 5 minutos (vence la caché).
  */
-import { readFileSync } from 'node:fs';
-import { basename } from 'node:path';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { basename, dirname, join } from 'node:path';
 import { casosImportacion } from '@/application/catalogo/importacion';
 import { conectar } from './_deps';
+
+/** Acepta un archivo, una carpeta (todos sus .csv) o un comodín como catalogos/csv/*.csv. */
+function expandir(ruta: string): string[] {
+  if (ruta.includes('*')) {
+    const carpeta = dirname(ruta);
+    const patron = new RegExp(`^${basename(ruta).replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`, 'i');
+    const hallados = readdirSync(carpeta).filter((n) => patron.test(n)).sort().map((n) => join(carpeta, n));
+    if (!hallados.length) throw new Error(`No hay archivos que coincidan con ${ruta}`);
+    return hallados;
+  }
+  if (statSync(ruta).isDirectory()) return readdirSync(ruta).filter((n) => n.toLowerCase().endsWith('.csv')).sort().map((n) => join(ruta, n));
+  return [ruta];
+}
 
 async function main() {
   const args = process.argv.slice(2);
   const simular = args.includes('--revisar');
   const campanaVigente = !args.includes('--sin-vigente');
-  const archivos = args.filter((a) => !a.startsWith('--'));
+  const archivos = args.filter((a) => !a.startsWith('--')).flatMap(expandir);
   if (!archivos.length) throw new Error('Indica al menos un archivo CSV');
 
   const { d } = conectar();
