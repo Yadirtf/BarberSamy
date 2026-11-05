@@ -30,6 +30,7 @@ export function repositorioPedidos(db: ObtenerDb): PedidoRepositorio {
       const filas = await (await col()).aggregate<{ _id: EstadoPedido; n: number }>([{ $group: { _id: '$estado', n: { $sum: 1 } } }]).toArray();
       return Object.fromEntries(filas.map((f) => [f._id, f.n]));
     },
+    async creadosDesde(desde) { return lista(await (await col()).find({ creadoEn: { $gte: desde } }).sort({ creadoEn: -1 }).toArray()); },
     async todos() { return lista(await (await col()).find({}).sort({ numero: 1 }).toArray()); },
   };
 }

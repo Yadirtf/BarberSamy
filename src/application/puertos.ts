@@ -96,6 +96,8 @@ export interface PedidoRepositorio {
   listarPorEstado(estado: EstadoPedido): Promise<Pedido[]>;
   contarPorEstado(): Promise<Partial<Record<EstadoPedido, number>>>;
   todos(): Promise<Pedido[]>;
+  /** Pedidos creados desde una fecha (para métricas). */
+  creadosDesde(desde: Date): Promise<Pedido[]>;
 }
 
 export interface ConfiguracionRepositorio {

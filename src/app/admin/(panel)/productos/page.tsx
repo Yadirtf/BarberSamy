@@ -43,7 +43,7 @@ export default async function Productos({ searchParams }: { searchParams: Promis
     <div className="pila">
       <div className="fila entre">
         <h1 style={{ margin: 0 }}>Productos <span className="suave pequeno">({res.total})</span></h1>
-        <Link href="/admin/productos/nuevo" className="btn btn-oro">+ Nuevo producto</Link>
+        <Link href="/admin/productos/nuevo" className="btn btn-primario">+ Nuevo producto</Link>
       </div>
       {param(sp, 'eliminado') && <p className="aviso aviso-ok">Producto eliminado.</p>}
 
@@ -82,7 +82,7 @@ export default async function Productos({ searchParams }: { searchParams: Promis
               return (
                 <tr key={p.id}>
                   <td>{img ? <img className="mini-foto" src={img} alt="" loading="lazy" /> : <span className="mini-foto" style={{ display: 'inline-block' }} />}</td>
-                  <td><Link className="oro" href={`/admin/productos/${p.id}`} style={{ fontWeight: 700 }}>{p.nombre}</Link><div className="suave pequeno">Cód. {p.codigo}</div></td>
+                  <td><Link className="realce" href={`/admin/productos/${p.id}`} style={{ fontWeight: 700 }}>{p.nombre}</Link><div className="suave pequeno">Cód. {p.codigo}</div></td>
                   <td>{nombreRevista.get(p.revistaId)}</td>
                   <td><Disponibilidad valor={p.disponibilidad} /></td>
                   <td><Interruptor id={p.id} campo="visibleTienda" valor={p.visibleTienda} /></td>
@@ -105,7 +105,7 @@ function Interruptor({ id, campo, valor }: { id: string; campo: string; valor: b
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="campo" value={campo} />
       <input type="hidden" name="valor" value={valor ? '0' : '1'} />
-      <button type="submit" className={`btn btn-chico ${valor ? 'btn-oro' : ''}`} aria-pressed={valor}>{valor ? 'Sí' : 'No'}</button>
+      <button type="submit" className={`btn btn-chico ${valor ? 'btn-primario' : ''}`} aria-pressed={valor}>{valor ? 'Sí' : 'No'}</button>
     </form>
   );
 }

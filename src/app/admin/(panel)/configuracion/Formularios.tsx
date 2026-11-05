@@ -20,6 +20,17 @@ export function FormularioConfiguracion({ config }: { config: Configuracion }) {
         <p className="ayuda">Con indicativo del país (57 para Colombia), sin + ni espacios. Vacío = la tienda muestra el mensaje para copiar.</p>
       </div>
       <div className="campo"><label htmlFor="enc">Primera línea del mensaje del pedido</label><input id="enc" name="encabezadoPedido" type="text" maxLength={200} defaultValue={config.encabezadoPedido} /></div>
+      <h2 style={{ marginTop: 18 }}>Entrega y pago</h2>
+      <div className="campo">
+        <label htmlFor="entrega">Cómo se entregan los pedidos</label>
+        <input id="entrega" name="infoEntrega" type="text" maxLength={200} placeholder="Recógelo en el local o domicilio en el barrio" defaultValue={config.infoEntrega} />
+      </div>
+      <div className="campo">
+        <label htmlFor="pagos">Medios de pago</label>
+        <input id="pagos" name="mediosPago" type="text" placeholder="Efectivo, Nequi, Daviplata" defaultValue={config.mediosPago.join(', ')} />
+        <p className="ayuda">Separados por coma. Salen en el carrito y en la portada de la tienda.</p>
+      </div>
+      <h2 style={{ marginTop: 18 }}>Televisor</h2>
       <div className="campo">
         <label htmlFor="msgtv">Mensaje de la pantalla del local en el TV</label>
         <textarea id="msgtv" name="mensajeMarcaTV" maxLength={300} defaultValue={config.mensajeMarcaTV} />
@@ -35,7 +46,7 @@ export function NuevoUsuario() {
   const [estado, accion] = useActionState(accionCrearUsuario, null);
   return (
     <details>
-      <summary className="oro" style={{ cursor: 'pointer' }}>+ Agregar usuario</summary>
+      <summary className="realce" style={{ cursor: 'pointer' }}>+ Agregar usuario</summary>
       <form action={accion} style={{ marginTop: 10 }}>
         <div className="rejilla-2">
           <div className="campo"><label htmlFor="u-nombre">Nombre</label><input id="u-nombre" name="nombre" type="text" required /></div>

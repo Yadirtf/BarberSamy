@@ -27,10 +27,10 @@ export default async function LayoutTienda({ children }: { children: React.React
       <main className="contenedor">{children}</main>
       <footer className="pie">
         <div className="contenedor pila">
-          <p><b className="oro">{config.negocio}</b> · {config.eslogan}</p>
+          <p><b className="realce">{config.negocio}</b> · {config.eslogan}</p>
           <p>Arma tu pedido y envíalo por WhatsApp. Te confirmamos precio y disponibilidad con el catálogo vigente.</p>
           {config.whatsapp && (
-            <p><a className="oro" href={`https://wa.me/${config.whatsapp}`} target="_blank" rel="noopener noreferrer">Escríbenos por WhatsApp</a></p>
+            <p><a className="realce" href={`https://wa.me/${config.whatsapp}`} target="_blank" rel="noopener noreferrer">Escríbenos por WhatsApp</a></p>
           )}
         </div>
       </footer>

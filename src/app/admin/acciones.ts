@@ -197,6 +197,8 @@ export async function accionGuardarConfiguracion(_: EstadoAccion, fd: FormData):
       whatsapp: texto(fd, 'whatsapp'),
       encabezadoPedido: texto(fd, 'encabezadoPedido'),
       mensajeMarcaTV: texto(fd, 'mensajeMarcaTV'),
+      infoEntrega: texto(fd, 'infoEntrega'),
+      mediosPago: texto(fd, 'mediosPago'),
     });
     invalidarCatalogo();
     return ok('Configuración guardada');

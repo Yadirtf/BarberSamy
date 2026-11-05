@@ -25,6 +25,9 @@ const REVISTAS: [string, string][] = [
   ['Astaxantina', '#d35400'],
 ];
 
+/** Revistas de suplementos y bienestar: sus fichas llevan el aviso médico. */
+const REVISTAS_SALUD = new Set(['Naprolap', 'Astaxantina']);
+
 async function main() {
   const { d, db } = conectar();
   await crearIndices(await db());
@@ -41,7 +44,7 @@ async function main() {
   for (const [nombre, color] of REVISTAS) {
     const existentes = await d.revistas.listar();
     if (existentes.some((r) => r.nombre.toLowerCase() === nombre.toLowerCase())) continue;
-    await revs.crear({ nombre, color, diasEntrega: nombre.startsWith('Barbería') ? 0 : 5 });
+    await revs.crear({ nombre, color, diasEntrega: nombre.startsWith('Barbería') ? 0 : 5, avisoSalud: REVISTAS_SALUD.has(nombre) });
     console.log(`✓ Revista ${nombre}`);
   }
 

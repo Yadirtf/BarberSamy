@@ -4,7 +4,8 @@ import { tiendaCache } from '@/servidor/cache';
 import { TarjetaProducto } from '@/ui/tienda/TarjetaProducto';
 
 export default async function Inicio() {
-  const [revistas, categorias, vitrina, recientes] = await Promise.all([
+  const [config, revistas, categorias, vitrina, recientes] = await Promise.all([
+    tiendaCache.configuracion(),
     tiendaCache.revistas(),
     tiendaCache.categorias(),
     tiendaCache.buscar({ disponibilidad: 'vitrina' }),
@@ -15,11 +16,20 @@ export default async function Inicio() {
 
   return (
     <>
-      <section className="seccion">
-        <p className="serif oro" style={{ fontSize: '1.25rem', margin: 0 }}>Belleza, cuidado y bienestar</p>
-        <h1 style={{ fontSize: '2.4rem' }}>Todos tus catálogos en un solo lugar</h1>
-        <p className="suave">Elige tus productos, agrégalos al pedido y envíalo por WhatsApp con un botón. Te confirmamos precio y entrega.</p>
+      <section className="portada">
+        <p className="serif">Belleza, cuidado y bienestar</p>
+        <h1>Todos tus catálogos en un solo lugar</h1>
+        <p>Elige tus productos, agrégalos al pedido y envíalo por WhatsApp con un botón. Te confirmamos precio y entrega.</p>
+        <div className="fila">
+          <Link href="/productos" className="btn btn-claro">Ver productos</Link>
+          {vitrina.total > 0 && <Link href="/productos?disp=vitrina" className="btn btn-transparente">Disponibles hoy</Link>}
+        </div>
       </section>
+      <div className="beneficios">
+        <div className="beneficio"><span aria-hidden="true">💬</span>Pide por WhatsApp</div>
+        <div className="beneficio"><span aria-hidden="true">📖</span>{revistas.length > 1 ? `${revistas.length} revistas` : 'Revistas'}</div>
+        <div className="beneficio"><span aria-hidden="true">💳</span>{config.mediosPago.length ? config.mediosPago.slice(0, 2).join(' · ') : 'Paga al recibir'}</div>
+      </div>
 
       {revistas.length > 0 && (
         <section className="seccion">
@@ -56,7 +66,7 @@ export default async function Inicio() {
         <section className="seccion">
           <div className="titulo-seccion">
             <h2>Disponibles ya en el local</h2>
-            <Link href="/productos?disp=vitrina" className="oro pequeno">Ver todos ({vitrina.total})</Link>
+            <Link href="/productos?disp=vitrina" className="realce pequeno">Ver todos ({vitrina.total})</Link>
           </div>
           <div className="rejilla-productos">
             {vitrina.items.slice(0, 8).map((p) => <TarjetaProducto key={p.id} p={p} revistaNombre={nombre.get(p.revistaId) ?? ''} />)}
@@ -67,7 +77,7 @@ export default async function Inicio() {
       <section className="seccion">
         <div className="titulo-seccion">
           <h2>Novedades</h2>
-          <Link href="/productos" className="oro pequeno">Ver catálogo ({recientes.total})</Link>
+          <Link href="/productos" className="realce pequeno">Ver catálogo ({recientes.total})</Link>
         </div>
         {recientes.items.length ? (
           <div className="rejilla-productos">

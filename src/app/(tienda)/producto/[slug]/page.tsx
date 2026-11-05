@@ -39,6 +39,8 @@ export default async function PaginaProducto({ params, searchParams }: Props) {
     .filter((f): f is { grande: string; mini: string } => !!f.grande && !!f.mini);
   const video = urlsPublicas.video(p.video, 720);
   const esSalud = p.pasosPreparacion.length > 0 || !!p.advertencias;
+  // `?? false` cubre revistas guardadas antes de que existiera el campo.
+  const avisoMedico = esSalud || (revista.avisoSalud ?? false);
   const diasEntrega = revista.diasEntrega;
 
   return (
@@ -56,7 +58,7 @@ export default async function PaginaProducto({ params, searchParams }: Props) {
           <Link href={`/revista/${revista.slug}`} className="chip" style={{ borderColor: revista.color }}>{revista.nombre}</Link>
           {categorias.map((c) => <Link key={c.id} href={`/categoria/${c.slug}`} className="chip">{c.nombre}</Link>)}
         </p>
-        {p.linea && <p className="oro" style={{ margin: 0, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', fontSize: '.85rem' }}>{p.linea}</p>}
+        {p.linea && <p className="realce" style={{ margin: 0, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', fontSize: '.85rem' }}>{p.linea}</p>}
         <h1 style={{ fontSize: '2.3rem' }}>{p.nombre}</h1>
 
         <div className="ficha-codigo">
@@ -91,6 +93,9 @@ export default async function PaginaProducto({ params, searchParams }: Props) {
           }}
         />
         <p className="suave pequeno" style={{ marginTop: 10 }}>El precio te lo confirmamos por WhatsApp con el catálogo vigente.</p>
+        {avisoMedico && (
+          <p className="aviso aviso-salud">La información es la del empaque. Este producto no reemplaza el consejo ni el tratamiento médico.</p>
+        )}
 
         {esSalud && (
           <section className="tarjeta" style={{ marginTop: 18 }}>
@@ -98,7 +103,6 @@ export default async function PaginaProducto({ params, searchParams }: Props) {
             {video && <video className="video-preparacion" src={video} controls muted playsInline preload="metadata" style={{ marginBottom: 12 }} />}
             {p.pasosPreparacion.length > 0 && <ol className="lista-puntos">{p.pasosPreparacion.map((s, i) => <li key={i}>{s}</li>)}</ol>}
             {p.advertencias && <p className="aviso pequeno"><b>Advertencias:</b> {p.advertencias}</p>}
-            <p className="suave pequeno">La información es la del empaque. No reemplaza el consejo ni el tratamiento médico.</p>
           </section>
         )}
 

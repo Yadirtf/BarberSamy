@@ -1,6 +1,7 @@
 import { sePuedePedir } from '@/domain/catalogo/producto';
 import { type EstadoPedido } from '@/domain/pedidos/estados';
 import { enlaceWhatsapp, mensajePedido } from '@/domain/pedidos/mensajeWhatsapp';
+import { calcularMetricas, type MetricasPedidos } from '@/domain/pedidos/metricas';
 import { cambiarEstado, type ItemPedido, type Pedido, solicitudPedidoSchema, type SolicitudPedido } from '@/domain/pedidos/pedido';
 import { ErrorDominio, invalido, noEncontrado } from '@/domain/shared/errores';
 import type { Dependencias } from '../puertos';
@@ -97,7 +98,13 @@ export function casosPedidos(d: D) {
     return nuevo;
   }
 
-  return { crear, cambiar };
+  /** Métricas de los últimos `dias` días: pedidos web vs. TV y lo más pedido. */
+  async function metricas(dias = 30): Promise<MetricasPedidos & { desde: Date }> {
+    const desde = new Date(d.reloj.ahora().getTime() - dias * 86_400_000);
+    return { ...calcularMetricas(await d.pedidos.creadosDesde(desde)), desde };
+  }
+
+  return { crear, cambiar, metricas };
 }
 
 export interface LineaProveedor {

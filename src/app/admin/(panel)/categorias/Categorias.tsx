@@ -36,7 +36,7 @@ export function FilaCategoria({ categoria: c, productos, madres }: { categoria: 
         <input type="hidden" name="id" value={c.id} />
         <Campos c={c} madres={madres} />
         <div className="campo"><label>Dirección</label><input name="slug" type="text" defaultValue={c.slug} /></div>
-        <BotonEnviar clase="btn btn-chico btn-oro">Guardar</BotonEnviar>
+        <BotonEnviar clase="btn btn-chico btn-primario">Guardar</BotonEnviar>
         <Mensaje estado={estado} />
       </form>
       {productos === 0 && (

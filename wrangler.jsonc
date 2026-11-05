@@ -16,6 +16,16 @@
     "MONGODB_DB": "tienda",
     "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "xcqmzcam",
     "NEXT_PUBLIC_SITE_URL": ""
+  },
+  // Vistas previas de cada PR (`wrangler preview`). Comparten la base de datos y la caché
+  // de producción: sirven para mirar cambios, no para hacer pedidos de prueba.
+  "previews": {
+    "vars": {
+      "MONGODB_DB": "tienda",
+      "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "xcqmzcam",
+      "NEXT_PUBLIC_SITE_URL": ""
+    },
+    "kv_namespaces": [{ "binding": "NEXT_INC_CACHE_KV", "id": "4a836ac3576a41f5b923ae28c2035d4d" }]
   }
   // Secretos (npx wrangler secret put NOMBRE): MONGODB_URI, SESSION_SECRET,
   // CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET

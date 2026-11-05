@@ -15,7 +15,7 @@ export function Importar() {
         <label className="check"><input type="checkbox" name="vigente" defaultChecked /> Marcar la campaña del archivo como vigente en su revista</label>
         <div className="fila">
           <BotonEnviar clase="btn" name="modo" value="revisar" pendiente="Revisando…">Revisar (no guarda)</BotonEnviar>
-          <BotonEnviar clase="btn btn-oro" name="modo" value="importar" pendiente="Importando…">Importar</BotonEnviar>
+          <BotonEnviar clase="btn btn-primario" name="modo" value="importar" pendiente="Importando…">Importar</BotonEnviar>
         </div>
       </form>
       <Mensaje estado={estado} />

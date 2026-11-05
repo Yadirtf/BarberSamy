@@ -87,7 +87,7 @@ export function FormularioProducto({ producto, opciones }: { producto?: Producto
           <div className="campo">
             <label htmlFor="codigo">Código en la revista</label>
             <input id="codigo" type="text" required maxLength={40} value={f.codigo} onChange={(e) => cambiar('codigo', e.target.value)} />
-            {err.codigo && <p className="ayuda" style={{ color: 'var(--rojo)' }}>{err.codigo}</p>}
+            {err.codigo && <p className="ayuda" style={{ color: 'var(--peligro)' }}>{err.codigo}</p>}
           </div>
         </div>
         <div className="campo">
@@ -212,7 +212,7 @@ export function FormularioProducto({ producto, opciones }: { producto?: Producto
 
       <Mensaje estado={estado} />
       <div className="barra-inferior">
-        <BotonEnviar clase="btn btn-oro btn-bloque">{producto ? 'Guardar cambios' : 'Crear producto'}</BotonEnviar>
+        <BotonEnviar clase="btn btn-primario btn-bloque">{producto ? 'Guardar cambios' : 'Crear producto'}</BotonEnviar>
       </div>
     </form>
   );

@@ -114,7 +114,7 @@ export function AjustesTelevisor({ ajustes, revistas }: { ajustes: AjustesTV; re
       </section>
 
       <Mensaje estado={estado} />
-      <div className="barra-inferior"><BotonEnviar clase="btn btn-oro btn-bloque">Guardar televisor</BotonEnviar></div>
+      <div className="barra-inferior"><BotonEnviar clase="btn btn-primario btn-bloque">Guardar televisor</BotonEnviar></div>
     </form>
   );
 }

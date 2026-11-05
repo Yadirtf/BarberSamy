@@ -13,11 +13,12 @@ export function FormularioRevista({ revista, campanas = [], cloudName }: { revis
   const [f, setF] = useState({
     nombre: revista?.nombre ?? '',
     slug: revista?.slug ?? '',
-    color: revista?.color ?? '#d4a857',
+    color: revista?.color ?? '#d81b60',
     logo: revista?.logo ?? (null as Media | null),
     enlaceCatalogo: revista?.enlaceCatalogo ?? '',
     campanaVigenteId: revista?.campanaVigenteId ?? '',
     diasEntrega: revista?.diasEntrega ?? 5,
+    avisoSalud: revista?.avisoSalud ?? false,
     activa: revista?.activa ?? true,
   });
   const logo = crearUrlsMedios(cloudName).imagen(f.logo, 200);
@@ -67,6 +68,7 @@ export function FormularioRevista({ revista, campanas = [], cloudName }: { revis
           {f.logo && <button type="button" className="btn btn-chico" onClick={() => setF({ ...f, logo: null })}>Quitar</button>}
         </div>
       </div>
+      <label className="check"><input type="checkbox" checked={f.avisoSalud} onChange={(e) => setF({ ...f, avisoSalud: e.target.checked })} /> Productos de salud o bienestar (la ficha avisa que no reemplazan tratamiento médico)</label>
       <label className="check"><input type="checkbox" checked={f.activa} onChange={(e) => setF({ ...f, activa: e.target.checked })} /> Activa (sus productos se ven en la tienda y el TV)</label>
       <Mensaje estado={estado} />
       <BotonEnviar>{revista ? 'Guardar revista' : 'Crear revista'}</BotonEnviar>

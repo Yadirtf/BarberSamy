@@ -23,7 +23,7 @@ export function BotonAgregar({ item }: { item: Omit<ItemCatalogo, 'cantidad' | '
         </div>
         <button
           type="button"
-          className="btn btn-oro"
+          className="btn btn-primario"
           style={{ flex: 1 }}
           onClick={() => {
             carrito.agregar({ ...item, tipo: 'producto', cantidad });
