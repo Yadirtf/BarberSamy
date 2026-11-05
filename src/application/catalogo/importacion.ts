@@ -49,7 +49,15 @@ export function mediaDesdeColumna(valor: string): Media | null {
 export function casosImportacion(d: D) {
   const revistasCasos = casosRevistas(d);
 
-  async function importar(textoCsv: string, opciones: { simular?: boolean; campanaVigente?: boolean } = {}): Promise<ReporteImportacion> {
+  /**
+   * Importa (o simula) un CSV. El panel lo manda en tandas pequeñas para no pasar el límite
+   * de CPU por petición de Cloudflare: `filaInicial` numera las filas como en el archivo
+   * completo y `ausentes: false` deja ese cálculo para una sola llamada final (ver `ausentes`).
+   */
+  async function importar(
+    textoCsv: string,
+    opciones: { simular?: boolean; campanaVigente?: boolean; ausentes?: boolean; filaInicial?: number } = {},
+  ): Promise<ReporteImportacion> {
     const simular = !!opciones.simular;
     const filas = leerCsv(textoCsv);
     const reporte: ReporteImportacion = { simulado: simular, creados: 0, actualizados: 0, errores: [], ausentes: [] };
@@ -69,10 +77,11 @@ export function casosImportacion(d: D) {
     const ahora = d.reloj.ahora();
     const aGuardar: Producto[] = [];
     const ordenSiguiente = new Map<string, number>();
+    const campanasVistas = new Map<string, string>();
 
     for (let i = 0; i < filas.length; i++) {
       const f = filas[i];
-      const numFila = i + 2; // +1 por encabezado, +1 porque Excel cuenta desde 1
+      const numFila = i + (opciones.filaInicial ?? 2); // +1 por encabezado, +1 porque Excel cuenta desde 1
       const revista = revistas.get(slugificar(f.revista ?? ''));
       if (!revista) { reporte.errores.push({ fila: numFila, mensaje: `Revista "${f.revista}" no existe. Créala primero en Revistas.` }); continue; }
       const codigo = (f.codigo ?? '').trim();
@@ -109,7 +118,9 @@ export function casosImportacion(d: D) {
         const set = campanasPorRevista.get(revista.id) ?? new Set<string>();
         set.add(f.campana.trim().toUpperCase());
         campanasPorRevista.set(revista.id, set);
-        campanaId = simular ? null : (await revistasCasos.asegurarCampana(revista.id, f.campana)).id;
+        const claveCampana = `${revista.id}|${f.campana.trim().toUpperCase()}`;
+        if (!simular && !campanasVistas.has(claveCampana)) campanasVistas.set(claveCampana, (await revistasCasos.asegurarCampana(revista.id, f.campana)).id);
+        campanaId = simular ? null : campanasVistas.get(claveCampana)!;
       }
 
       let disponibilidad: Disponibilidad | undefined;
@@ -160,13 +171,13 @@ export function casosImportacion(d: D) {
     }
 
     // Productos visibles que no vinieron en el archivo: candidatos a ocultar.
-    for (const [revistaId, codigos] of codigosPorRevista) {
-      const revista = [...revistas.values()].find((r) => r.id === revistaId)!;
-      for (const p of await d.productos.listarPorRevista(revistaId)) {
-        if (p.visibleTienda && !codigos.has(p.codigo.toUpperCase())) {
-          reporte.ausentes.push({ id: p.id, revista: revista.nombre, codigo: p.codigo, nombre: p.nombre });
-        }
+    if (opciones.ausentes !== false) {
+      const porSlug: Record<string, string[]> = {};
+      for (const [revistaId, codigos] of codigosPorRevista) {
+        const r = [...revistas.values()].find((x) => x.id === revistaId)!;
+        porSlug[r.slug] = [...codigos];
       }
+      reporte.ausentes = await ausentes(porSlug);
     }
 
     if (!simular && aGuardar.length) {
@@ -182,6 +193,21 @@ export function casosImportacion(d: D) {
       await marcarCambioCatalogo(d);
     }
     return reporte;
+  }
+
+  /** Productos visibles de cada revista cuyo código no está en la lista (salieron de la campaña). */
+  async function ausentes(codigosPorRevista: Record<string, string[]>): Promise<ReporteImportacion['ausentes']> {
+    const revistas = new Map((await d.revistas.listar()).map((r) => [r.slug, r]));
+    const salida: ReporteImportacion['ausentes'] = [];
+    for (const [slug, codigos] of Object.entries(codigosPorRevista)) {
+      const revista = revistas.get(slugificar(slug));
+      if (!revista) continue;
+      const vienen = new Set(codigos.map((c) => c.trim().toUpperCase()));
+      for (const p of await d.productos.resumenPorRevista(revista.id)) {
+        if (p.visibleTienda && !vienen.has(p.codigo.toUpperCase())) salida.push({ id: p.id, revista: revista.nombre, codigo: p.codigo, nombre: p.nombre });
+      }
+    }
+    return salida;
   }
 
   async function exportar(): Promise<string> {
@@ -216,5 +242,5 @@ export function casosImportacion(d: D) {
     return escribirCsv([...COLUMNAS_CSV], filas);
   }
 
-  return { importar, exportar };
+  return { importar, ausentes, exportar };
 }

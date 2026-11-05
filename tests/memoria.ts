@@ -89,6 +89,10 @@ export function dependenciasEnMemoria(): Dependencias & { _t: { productos: Map<s
       porCodigo: async (rid, c) => productos.todos().find((p) => p.revistaId === rid && p.codigo.toUpperCase() === c.trim().toUpperCase()) ?? null,
       porCodigos: async (rid, cs) => productos.todos().filter((p) => p.revistaId === rid && cs.includes(p.codigo)),
       listarPorRevista: async (rid) => productos.todos().filter((p) => p.revistaId === rid).sort((a, b) => a.ordenTV - b.ordenTV),
+      resumenPorRevista: async (rid) => productos.todos().filter((p) => p.revistaId === rid).map((p) => ({
+        id: p.id, codigo: p.codigo, nombre: p.nombre, pagina: p.paginaCatalogo,
+        fotos: p.imagenes.filter((m) => m.tipo === 'imagen').length, visibleTienda: p.visibleTienda,
+      })),
       existeSlug: async (s, ex) => productos.todos().some((p) => p.slug === s && p.id !== ex),
       guardar: productos.guardar,
       guardarVarios: async (ps) => { for (const p of ps) await productos.guardar(p); },

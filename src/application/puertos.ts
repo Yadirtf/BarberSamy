@@ -61,6 +61,8 @@ export interface FiltroProductos {
 
 export type OrdenProductos = 'recientes' | 'nombre' | 'tv';
 
+export interface ResumenProducto { id: string; codigo: string; nombre: string; pagina: number | null; fotos: number; visibleTienda: boolean }
+
 export interface ProductoRepositorio {
   buscar(filtro: FiltroProductos, pagina: number, porPagina: number, orden?: OrdenProductos): Promise<Pagina<Producto>>;
   porId(id: string): Promise<Producto | null>;
@@ -69,6 +71,8 @@ export interface ProductoRepositorio {
   porCodigo(revistaId: string, codigo: string): Promise<Producto | null>;
   porCodigos(revistaId: string, codigos: string[]): Promise<Producto[]>;
   listarPorRevista(revistaId: string): Promise<Producto[]>;
+  /** Datos mínimos de todos los productos de una revista (consulta liviana, sin descripciones). */
+  resumenPorRevista(revistaId: string): Promise<ResumenProducto[]>;
   existeSlug(slug: string, excluirId?: string): Promise<boolean>;
   guardar(producto: Producto): Promise<void>;
   guardarVarios(productos: Producto[]): Promise<void>;

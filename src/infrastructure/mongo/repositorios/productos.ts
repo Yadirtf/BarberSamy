@@ -60,6 +60,19 @@ export function repositorioProductos(db: ObtenerDb): ProductoRepositorio {
       return codigos.length ? lista(await (await col()).find({ revistaId, codigo: { $in: codigos } }).toArray()) : [];
     },
     async listarPorRevista(revistaId) { return lista(await (await col()).find({ revistaId }).sort(ORDENES.tv).toArray()); },
+    async resumenPorRevista(revistaId) {
+      const docs = await (await col())
+        .find({ revistaId }, { projection: { codigo: 1, nombre: 1, paginaCatalogo: 1, visibleTienda: 1, 'imagenes.tipo': 1 } })
+        .toArray();
+      return docs.map((x) => ({
+        id: String(x._id),
+        codigo: String(x.codigo),
+        nombre: String(x.nombre),
+        pagina: typeof x.paginaCatalogo === 'number' ? x.paginaCatalogo : null,
+        fotos: Array.isArray(x.imagenes) ? x.imagenes.filter((m: { tipo?: string }) => m?.tipo === 'imagen').length : 0,
+        visibleTienda: x.visibleTienda !== false,
+      }));
+    },
     async existeSlug(slug, excluirId) {
       return (await (await col()).countDocuments({ slug, ...(excluirId && { _id: { $ne: excluirId } }) }, { limit: 1 })) > 0;
     },
