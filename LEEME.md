@@ -91,6 +91,18 @@ Cloudflare Workers gratis da 100.000 peticiones al día y 10 ms de CPU por petic
 
 Atlas M0 no hace copias de seguridad: en *Panel → Configuración → Copia de seguridad* se descarga todo en JSON. Hazlo cada semana.
 
+### Primer ingreso (crear el administrador)
+
+No hace falta correr nada en tu computador. Con la tienda ya publicada:
+
+1. Abre `https://<tu-tienda>/admin/instalar` (o `/admin/login`, que muestra el enlace mientras no haya usuarios).
+2. En **Código de instalación** pega el mismo valor que pusiste en el secreto `SESSION_SECRET` de Cloudflare.
+3. Escribe tu nombre, correo y una contraseña de 10 caracteres o más.
+
+Eso crea los índices de Mongo, las categorías y revistas base y tu usuario administrador, y te deja dentro del panel. La página se desactiva sola cuando ya existe un usuario. Los demás usuarios se agregan en *Panel → Configuración*.
+
+La alternativa por consola sigue disponible: `npm run db:semilla` y `npm run crear-admin`.
+
 ### Verificación después de publicar
 
 1. La tienda abre en un celular con datos móviles.

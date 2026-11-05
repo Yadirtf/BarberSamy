@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import type { EstadoPedido } from '@/domain/pedidos/estados';
 import { invalidarCatalogo } from '@/servidor/cache';
-import { casos } from '@/servidor/contenedor';
+import { casos, entorno, prepararIndices } from '@/servidor/contenedor';
 import { errorAccion, type EstadoAccion } from '@/servidor/respuestas';
 import { abrirSesion, cerrarSesion, requerirSesion } from '@/servidor/sesion';
 import { headers } from 'next/headers';
@@ -25,6 +25,30 @@ export async function accionLogin(_: EstadoAccion, fd: FormData): Promise<Estado
     const h = await headers();
     const ip = h.get('cf-connecting-ip') ?? h.get('x-forwarded-for');
     const s = await casos().auth.iniciarSesion(texto(fd, 'email'), String(fd.get('clave') ?? ''), ip);
+    await abrirSesion(s);
+  } catch (e) {
+    return errorAccion(e);
+  }
+  redirect('/admin');
+}
+
+/** Primer ingreso: crea el primer administrador (solo si no hay usuarios) y abre su sesión. */
+export async function accionInstalar(_: EstadoAccion, fd: FormData): Promise<EstadoAccion> {
+  try {
+    const c = casos();
+    if (!(await c.instalacion.pendiente())) return { ok: false, mensaje: 'El sistema ya tiene administrador. Entra con tu usuario.' };
+    await prepararIndices();
+    const s = await c.instalacion.instalar(
+      {
+        codigo: String(fd.get('codigo') ?? ''),
+        nombre: texto(fd, 'nombre'),
+        email: texto(fd, 'email'),
+        clave: String(fd.get('clave') ?? ''),
+        confirmacion: String(fd.get('confirmacion') ?? ''),
+      },
+      entorno().secretoSesion,
+    );
+    invalidarCatalogo();
     await abrirSesion(s);
   } catch (e) {
     return errorAccion(e);

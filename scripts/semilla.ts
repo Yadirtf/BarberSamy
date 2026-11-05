@@ -4,49 +4,18 @@
  * Con --ejemplos agrega 3 productos de muestra de la vitrina anterior.
  * Uso: npm run db:semilla  (o)  npm run db:semilla -- --ejemplos
  */
-import { casosCategorias } from '@/application/catalogo/categorias';
 import { casosProductos } from '@/application/catalogo/productos';
-import { casosRevistas } from '@/application/catalogo/revistas';
-import { CATEGORIAS_BASE } from '@/domain/catalogo/categoria';
+import { casosInstalacion } from '@/application/instalacion';
 import { crearIndices } from '@/infrastructure/mongo/colecciones';
 import { conectar } from './_deps';
-
-const REVISTAS: [string, string][] = [
-  ['Barbería Samy', '#d4a857'],
-  ['Yanbal', '#b3005e'],
-  ['Avon', '#e4007c'],
-  ['Ésika', '#e6007e'],
-  ['Cyzone', '#00a19a'],
-  ['Natura', '#f28c28'],
-  ['Oriflame', '#4f9b3a'],
-  ['Anyeluz', '#8e44ad'],
-  ['Milagros', '#c0392b'],
-  ['Naprolap', '#1f7a4d'],
-  ['Astaxantina', '#d35400'],
-];
-
-/** Revistas de suplementos y bienestar: sus fichas llevan el aviso médico. */
-const REVISTAS_SALUD = new Set(['Naprolap', 'Astaxantina']);
 
 async function main() {
   const { d, db } = conectar();
   await crearIndices(await db());
   console.log('✓ Índices');
 
-  const cats = casosCategorias(d);
-  for (const [i, c] of CATEGORIAS_BASE.entries()) {
-    if (await d.categorias.porSlug(c.slug)) continue;
-    await cats.crear({ ...c, orden: i });
-    console.log(`✓ Categoría ${c.nombre}`);
-  }
-
-  const revs = casosRevistas(d);
-  for (const [nombre, color] of REVISTAS) {
-    const existentes = await d.revistas.listar();
-    if (existentes.some((r) => r.nombre.toLowerCase() === nombre.toLowerCase())) continue;
-    await revs.crear({ nombre, color, diasEntrega: nombre.startsWith('Barbería') ? 0 : 5, avisoSalud: REVISTAS_SALUD.has(nombre) });
-    console.log(`✓ Revista ${nombre}`);
-  }
+  const { categorias, revistas } = await casosInstalacion(d).sembrarCatalogoBase();
+  console.log(`✓ ${categorias} categorías y ${revistas} revistas nuevas`);
 
   if (process.argv.includes('--ejemplos')) {
     const barberia = (await d.revistas.listar()).find((r) => r.slug === 'barberia-samy');
