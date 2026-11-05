@@ -8,12 +8,14 @@ import { casosImportacion } from '@/application/catalogo/importacion';
 import { casosProductos } from '@/application/catalogo/productos';
 import { casosRevistas } from '@/application/catalogo/revistas';
 import { casosConfiguracion } from '@/application/configuracion';
+import { casosInstalacion } from '@/application/instalacion';
 import { casosPedidos } from '@/application/pedidos/pedidos';
 import { casosTV } from '@/application/tv/playlist';
 import { hashPbkdf2 } from '@/infrastructure/auth/hash';
 import { firmaCloudinary } from '@/infrastructure/cloudinary/firma';
 import { crearUrlsMedios } from '@/infrastructure/cloudinary/urls';
 import { idsObjectId, relojSistema } from '@/infrastructure/ids';
+import { crearIndices } from '@/infrastructure/mongo/colecciones';
 import { obtenerDb } from '@/infrastructure/mongo/conexion';
 import { repositorioCategorias } from '@/infrastructure/mongo/repositorios/categorias';
 import { repositorioPedidos } from '@/infrastructure/mongo/repositorios/pedidos';
@@ -90,7 +92,15 @@ export function casos() {
     tv: casosTV(d),
     configuracion: casosConfiguracion(d),
     auth: casosAuth(d),
+    instalacion: casosInstalacion(d),
   };
+}
+
+/** Crea o actualiza los índices de Mongo (lo usa la instalación inicial). */
+export async function prepararIndices(): Promise<void> {
+  const env = entorno();
+  if (!env.mongoUri) throw new Error('Falta la variable MONGODB_URI');
+  await crearIndices(await obtenerDb(env.mongoUri, env.mongoDb, ambitoPeticion())());
 }
 
 export function firmaMedios() {
