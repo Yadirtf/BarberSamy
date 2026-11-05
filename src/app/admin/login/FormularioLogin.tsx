@@ -17,7 +17,7 @@ export function FormularioLogin() {
         <input id="clave" name="clave" type="password" autoComplete="current-password" required />
       </div>
       <Mensaje estado={estado} />
-      <BotonEnviar clase="btn btn-oro btn-bloque" pendiente="Entrando…">Entrar</BotonEnviar>
+      <BotonEnviar clase="btn btn-primario btn-bloque" pendiente="Entrando…">Entrar</BotonEnviar>
     </form>
   );
 }

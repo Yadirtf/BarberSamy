@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: 'Tienda Samy',
     start_url: '/',
     display: 'standalone',
-    background_color: '#0c0b0a',
-    theme_color: '#0c0b0a',
+    background_color: '#fff8f6',
+    theme_color: '#d81b60',
     icons: [{ src: '/icono.svg', sizes: 'any', type: 'image/svg+xml' }],
   };
 }

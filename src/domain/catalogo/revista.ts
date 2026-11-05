@@ -17,6 +17,8 @@ export interface Revista {
   campanaVigenteId: string | null;
   /** Días aproximados que tarda en llegar un producto "por pedido" de esta revista. */
   diasEntrega: number;
+  /** Productos de bienestar o suplementos: la ficha muestra que no reemplazan tratamiento médico. */
+  avisoSalud: boolean;
   activa: boolean;
   creadoEn: Date;
   actualizadoEn: Date;
@@ -30,6 +32,7 @@ export const datosRevistaSchema = z.object({
   enlaceCatalogo: urlOpcional,
   campanaVigenteId: z.string().trim().optional().nullable().transform((v) => (v ? v : null)),
   diasEntrega: z.coerce.number().int().min(0).max(60).default(5),
+  avisoSalud: z.boolean().default(false),
   activa: z.boolean().default(true),
 });
 export type DatosRevista = z.input<typeof datosRevistaSchema>;

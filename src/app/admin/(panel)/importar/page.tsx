@@ -21,7 +21,7 @@ export default function PaginaImportar() {
         <h2>Importar CSV</h2>
         <p className="suave">Los productos se identifican por <b>revista + código</b>: si el código ya existe se actualiza; si no, se crea. Las celdas vacías no borran datos. Primero usa “Revisar” para ver qué pasaría sin guardar nada.</p>
         <details>
-          <summary className="oro" style={{ cursor: 'pointer' }}>Formato de columnas</summary>
+          <summary className="realce" style={{ cursor: 'pointer' }}>Formato de columnas</summary>
           <ul className="lista-puntos pequeno">
             <li><b>revista</b> (obligatoria): la dirección de la revista, ej. <code>yanbal</code>, <code>esika</code>.</li>
             <li><b>codigo</b>, <b>nombre</b> (obligatorias).</li>

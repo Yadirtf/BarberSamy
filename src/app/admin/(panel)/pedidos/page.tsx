@@ -32,7 +32,7 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
     <div className="pila">
       <div className="fila entre">
         <h1 style={{ margin: 0 }}>Pedidos</h1>
-        <Link href="/admin/pedidos/proveedores" className="btn btn-oro">Qué pedir a cada proveedor</Link>
+        <Link href="/admin/pedidos/proveedores" className="btn btn-primario">Qué pedir a cada proveedor</Link>
       </div>
       <div className="filtros">
         <Link className={`chip ${!estado ? 'activo' : ''}`} href={qs({ estado: undefined })}>Todos</Link>
@@ -51,7 +51,7 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
           <tbody>
             {res.items.map((p) => (
               <tr key={p.id}>
-                <td><Link className="oro" href={`/admin/pedidos/${p.id}`} style={{ fontWeight: 700 }}>#{formatearNumeroPedido(p.numero)}</Link></td>
+                <td><Link className="realce" href={`/admin/pedidos/${p.id}`} style={{ fontWeight: 700 }}>#{formatearNumeroPedido(p.numero)}</Link></td>
                 <td>{p.cliente.nombre}{p.cliente.telefono && <div className="suave pequeno">{p.cliente.telefono}</div>}</td>
                 <td>{p.items.length} ({totalUnidades(p)} u.)</td>
                 <td>{p.origen === 'tv' ? 'TV' : 'Web'}</td>

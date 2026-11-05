@@ -39,7 +39,7 @@ export async function Listado({ filtro, titulo, fijo = {} }: { filtro: FiltroTie
 
       {fijo.revista && res.revista?.enlaceCatalogo && (
         <p className="aviso">
-          ¿No encuentras algo? <a href={res.revista.enlaceCatalogo} target="_blank" rel="noopener noreferrer" className="oro">Ver el catálogo completo de {res.revista.nombre}</a> y pídelo por código desde tu <Link href="/carrito" className="oro">pedido</Link>.
+          ¿No encuentras algo? <a href={res.revista.enlaceCatalogo} target="_blank" rel="noopener noreferrer" className="realce">Ver el catálogo completo de {res.revista.nombre}</a> y pídelo por código desde tu <Link href="/carrito" className="realce">pedido</Link>.
         </p>
       )}
 
@@ -80,7 +80,7 @@ export async function Listado({ filtro, titulo, fijo = {} }: { filtro: FiltroTie
       ) : (
         <div className="vacio">
           <p>No encontramos productos con esos filtros.</p>
-          <p>Si tienes el código de la revista, puedes <Link href="/carrito#por-codigo" className="oro">pedirlo por código</Link>.</p>
+          <p>Si tienes el código de la revista, puedes <Link href="/carrito#por-codigo" className="realce">pedirlo por código</Link>.</p>
         </div>
       )}
       <Paginacion pagina={res.pagina} total={res.total} porPagina={res.porPagina} href={(p) => url({ pagina: p })} />

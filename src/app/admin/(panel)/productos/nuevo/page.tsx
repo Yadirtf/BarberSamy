@@ -12,7 +12,7 @@ export default async function NuevoProducto() {
       <Link href="/admin/productos" className="suave pequeno">← Productos</Link>
       <h1>Nuevo producto</h1>
       {opciones.revistas.length ? <FormularioProducto opciones={opciones} /> : (
-        <p className="aviso">Primero crea al menos una <Link className="oro" href="/admin/revistas">revista</Link>.</p>
+        <p className="aviso">Primero crea al menos una <Link className="realce" href="/admin/revistas">revista</Link>.</p>
       )}
     </div>
   );

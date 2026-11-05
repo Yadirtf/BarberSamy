@@ -43,7 +43,7 @@ export default async function DetallePedido({ params }: { params: Promise<{ id: 
           <tbody>
             {pedido.items.map((it, i) => (
               <tr key={i}>
-                <td>{it.productoId ? <Link className="oro" href={`/admin/productos/${it.productoId}`}>{it.nombre}</Link> : it.nombre}</td>
+                <td>{it.productoId ? <Link className="realce" href={`/admin/productos/${it.productoId}`}>{it.nombre}</Link> : it.nombre}</td>
                 <td>{it.revistaNombre}</td>
                 <td><b>{it.codigo}</b></td>
                 <td>{it.cantidad}</td>

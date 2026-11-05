@@ -7,11 +7,12 @@ import { carrito, type ItemCarrito, origenPedido, useCarrito } from './carrito';
 
 type RevistaOpcion = { id: string; nombre: string; diasEntrega: number };
 type Verificacion = Record<string, { disponible: boolean; disponibilidad: string }>;
+type Entrega = { info: string; mediosPago: string[] };
 type Enviado = { numero: number; urlWhatsapp: string | null; mensaje: string };
 
 const numero = (n: number) => String(n).padStart(4, '0');
 
-export function VistaCarrito({ revistas }: { revistas: RevistaOpcion[] }) {
+export function VistaCarrito({ revistas, entrega }: { revistas: RevistaOpcion[]; entrega: Entrega }) {
   const estado = useCarrito();
   const [verificacion, setVerificacion] = useState<Verificacion>({});
   const [enviando, setEnviando] = useState(false);
@@ -95,20 +96,20 @@ export function VistaCarrito({ revistas }: { revistas: RevistaOpcion[] }) {
       {!estado.items.length && (
         <div className="vacio">
           <p>Tu pedido está vacío.</p>
-          <Link href="/productos" className="btn btn-oro">Ver productos</Link>
+          <Link href="/productos" className="btn btn-primario">Ver productos</Link>
         </div>
       )}
 
       {vitrina.length > 0 && (
         <section>
-          <h2 className="oro" style={{ marginTop: 16 }}>Disponibles en el local</h2>
+          <h2 className="realce" style={{ marginTop: 16 }}>Disponibles en el local</h2>
           <p className="suave pequeno">Entrega inmediata.</p>
           {vitrina.map((i) => <Linea key={carrito.claveDe(i)} item={i} noDisponible={noDisponible(i)} />)}
         </section>
       )}
       {porPedido.length > 0 && (
         <section>
-          <h2 className="oro" style={{ marginTop: 16 }}>Por pedido</h2>
+          <h2 className="realce" style={{ marginTop: 16 }}>Por pedido</h2>
           <p className="suave pequeno">Se piden a cada revista. Llegan en unos {diasMax || 5} días.</p>
           {porPedido.map((i) => <Linea key={carrito.claveDe(i)} item={i} noDisponible={noDisponible(i)} />)}
         </section>
@@ -132,6 +133,7 @@ export function VistaCarrito({ revistas }: { revistas: RevistaOpcion[] }) {
               <input id="tel" type="tel" autoComplete="tel" maxLength={20} value={estado.telefono} onChange={(e) => carrito.actualizarDatos({ telefono: e.target.value })} />
             </div>
           </div>
+          <InfoEntrega entrega={entrega} />
           {error && <p className="aviso aviso-error" role="alert">{error}</p>}
           {hayNoDisponibles && <p className="aviso aviso-error">Quita los productos marcados como no disponibles para poder enviar.</p>}
           <div className="barra-inferior">
@@ -141,6 +143,18 @@ export function VistaCarrito({ revistas }: { revistas: RevistaOpcion[] }) {
             <p className="suave pequeno" style={{ textAlign: 'center', margin: '8px 0 0' }}>Sin precios: te los confirmamos con el catálogo vigente.</p>
           </div>
         </form>
+      )}
+    </div>
+  );
+}
+
+function InfoEntrega({ entrega }: { entrega: Entrega }) {
+  if (!entrega.info && !entrega.mediosPago.length) return null;
+  return (
+    <div className="tarjeta pila">
+      {entrega.info && <p style={{ margin: 0 }}><b>Entrega:</b> {entrega.info}</p>}
+      {entrega.mediosPago.length > 0 && (
+        <div className="fila"><b>Pagas con:</b> {entrega.mediosPago.map((m) => <span key={m} className="chip">{m}</span>)}</div>
       )}
     </div>
   );
@@ -218,7 +232,7 @@ function PorCodigo({ revistas }: { revistas: RevistaOpcion[] }) {
             <label htmlFor="pc-desc">¿Qué producto es? (opcional)</label>
             <input id="pc-desc" type="text" maxLength={120} placeholder="Ej: labial rojo mate" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
           </div>
-          <button className="btn btn-oro" type="submit">Agregar</button>
+          <button className="btn btn-primario" type="submit">Agregar</button>
         </form>
       )}
     </section>

@@ -21,7 +21,7 @@ export const tiendaCache = {
   categorias: unstable_cache(async () => casos().d.categorias.listar(), ['tienda-categorias'], opciones),
   configuracion: unstable_cache(async () => {
     const c = await casos().d.configuracion.obtener();
-    return { negocio: c.negocio, eslogan: c.eslogan, whatsapp: c.whatsapp };
+    return { negocio: c.negocio, eslogan: c.eslogan, whatsapp: c.whatsapp, infoEntrega: c.infoEntrega, mediosPago: c.mediosPago };
   }, ['tienda-config'], opciones),
   buscar: unstable_cache(async (f: FiltroTienda) => casos().tienda.buscar(f), ['tienda-buscar'], opciones),
   producto: unstable_cache(async (slug: string) => casos().tienda.producto(slug), ['tienda-producto'], opciones),

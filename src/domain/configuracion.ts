@@ -11,6 +11,10 @@ export interface Configuracion {
   whatsapp: string;
   encabezadoPedido: string;
   mensajeMarcaTV: string;
+  /** Cómo se entregan los pedidos (en el local, domicilio, zonas). Se muestra en el carrito. */
+  infoEntrega: string;
+  /** Medios de pago que acepta el local. Se muestran en el carrito y en la portada. */
+  mediosPago: string[];
   tv: AjustesTV;
 }
 
@@ -33,6 +37,8 @@ export const CONFIGURACION_INICIAL: Configuracion = {
   whatsapp: '',
   encabezadoPedido: 'Hola! Quiero hacer este pedido:',
   mensajeMarcaTV: 'Todos estos productos los puedes pedir <b>aquí mismo</b>. Pregúntale a tu barbero.',
+  infoEntrega: 'Recógelo en el local o pregúntanos por domicilio.',
+  mediosPago: ['Efectivo'],
   tv: {
     revistaIds: [],
     segundosPorProducto: 11,
@@ -54,6 +60,13 @@ export const datosConfiguracionSchema = z.object({
     .refine((v) => v === '' || (v.length >= 10 && v.length <= 15), 'Número con indicativo, ej. 573001234567'),
   encabezadoPedido: z.string().trim().max(200).default(''),
   mensajeMarcaTV: z.string().trim().max(300).default(''),
+  infoEntrega: z.string().trim().max(200).default(''),
+  /** Llega como lista o como texto separado por comas desde el formulario. */
+  mediosPago: z
+    .union([z.array(z.string()), z.string()])
+    .default([])
+    .transform((v) => (Array.isArray(v) ? v : v.split(',')).map((x) => x.trim()).filter(Boolean).slice(0, 10))
+    .pipe(z.array(z.string().max(30))),
 });
 
 export const ajustesTVSchema = z.object({

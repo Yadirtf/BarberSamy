@@ -110,6 +110,12 @@ Atlas M0 no hace copias de seguridad: en *Panel → Configuración → Copia de 
 
 Los pedidos llegan como **Nuevo** al presionar el botón, aunque el cliente no termine de enviar el WhatsApp. Flujo: Nuevo → Confirmado → Pedido al proveedor → Llegó → Entregado (o Cancelado). *Qué pedir a cada proveedor* junta los confirmados por revista y código, con un botón para copiar la lista y enviarla a la asesora.
 
+### Configuración
+
+*Panel → Configuración*: nombre, WhatsApp que recibe los pedidos, cómo se entregan (en el local, domicilio) y los medios de pago separados por coma (`Efectivo, Nequi, Daviplata`). La entrega y los pagos salen en el carrito y en la portada. En cada revista de suplementos (Naprolap, Astaxantina) marca *Productos de salud o bienestar* para que sus fichas muestren el aviso médico.
+
+El inicio del panel muestra los últimos 30 días: cuántos pedidos llegan por la tienda y cuántos por el QR del televisor, y lo más pedido. Sirve para medir la semana de prueba en el local.
+
 ### Televisor
 
 *Panel → Televisor*: qué revistas salen y en qué orden, el orden de los productos dentro de cada revista, segundos por producto, tope por revista y modo liviano. El TV toma los cambios solo en menos de 5 minutos.

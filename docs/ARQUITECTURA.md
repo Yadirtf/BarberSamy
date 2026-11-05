@@ -68,12 +68,12 @@ usuarios, contadores, limites
 
 | Colección | Campos | Índices |
 |---|---|---|
-| `revistas` | nombre, slug, color, logo, enlaceCatalogo, campanaVigenteId, diasEntrega, activa | `slug` único |
+| `revistas` | nombre, slug, color, logo, enlaceCatalogo, campanaVigenteId, diasEntrega, avisoSalud, activa | `slug` único |
 | `campanas` | revistaId, codigo, inicio, fin | `revistaId + codigo` único |
 | `categorias` | nombre, slug, icono, orden, padreId | `slug` único; `padreId + orden` |
 | `productos` | revistaId, categoriaIds, campanaId, codigo, slug, nombre, linea, descripcion, caracteristicas, contenido, disponibilidad, stockVitrina, imagenes, video, pasosPreparacion, advertencias, etiqueta, color, paginaCatalogo, visibleTienda, visibleTV, ordenTV | `slug` único; `revistaId + codigo` único; `revistaId + visibleTV + ordenTV`; `categoriaIds`; `campanaId` |
 | `pedidos` | numero, items[], cliente{nombre, telefono}, nota, origen, estado, historial[] | `numero` único; `creadoEn`; `estado + creadoEn` |
-| `configuracion` | negocio, eslogan, whatsapp, encabezadoPedido, mensajeMarcaTV, tv{…} | — |
+| `configuracion` | negocio, eslogan, whatsapp, encabezadoPedido, mensajeMarcaTV, infoEntrega, mediosPago[], tv{…} | — |
 | `usuarios` | email, nombre, hashClave, rol, activo | `email` único |
 | `contadores` | valor (número de pedido y versión del catálogo) | — |
 | `limites` | contador por IP y ventana de tiempo | TTL en `expira` |
@@ -95,6 +95,14 @@ Decisiones:
 3. La respuesta trae el enlace `wa.me` con el mensaje armado y el navegador lo abre.
 4. En el panel: Nuevo → Confirmado → Pedido al proveedor → Llegó → Entregado (o Cancelado). Cada cambio queda en el historial con fecha.
 5. "Qué pedir a cada proveedor" suma los pedidos confirmados por revista y código.
+
+## Métricas
+
+`domain/pedidos/metricas.ts` calcula, sin base de datos, cuántos pedidos llegan de la tienda web y del QR del TV y qué productos se piden más (por revista + código, sin contar cancelados). El caso de uso `pedidos.metricas(dias)` lo alimenta con `creadosDesde`, y el inicio del panel lo muestra para los últimos 30 días.
+
+## Colores
+
+Todos los colores de la tienda y el panel están en el bloque `:root` de `src/app/globals.css` con nombres semánticos (`--primario`, `--acento`, `--texto`…). Los componentes nunca usan un color directo, así que cambiar la marca es cambiar ese bloque. El televisor conserva su propia paleta oscura en `public/tv/tv.css`.
 
 ## Caché
 

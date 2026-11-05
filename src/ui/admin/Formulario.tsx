@@ -3,7 +3,7 @@
 import { useFormStatus } from 'react-dom';
 import type { EstadoAccion } from '@/servidor/respuestas';
 
-export function BotonEnviar({ children, clase = 'btn btn-oro', pendiente = 'Guardando…', ...resto }: { children: React.ReactNode; clase?: string; pendiente?: string } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+export function BotonEnviar({ children, clase = 'btn btn-primario', pendiente = 'Guardando…', ...resto }: { children: React.ReactNode; clase?: string; pendiente?: string } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const { pending } = useFormStatus();
   return <button type="submit" className={clase} disabled={pending} {...resto}>{pending ? pendiente : children}</button>;
 }

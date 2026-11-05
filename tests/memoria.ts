@@ -111,6 +111,7 @@ export function dependenciasEnMemoria(): Dependencias & { _t: { productos: Map<s
       listarPorEstado: async (e) => pedidos.todos().filter((p) => p.estado === e),
       contarPorEstado: async () => pedidos.todos().reduce<Record<string, number>>((a, p) => ({ ...a, [p.estado]: (a[p.estado] ?? 0) + 1 }), {}),
       todos: async () => pedidos.todos(),
+      creadosDesde: async (desde) => pedidos.todos().filter((p) => p.creadoEn >= desde),
     },
     configuracion: { obtener: async () => structuredClone(config), guardar: async (c) => { config = structuredClone(c); } },
     usuarios: {
