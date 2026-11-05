@@ -120,6 +120,7 @@ La alternativa por consola sigue disponible: `npm run db:semilla` y `npm run cre
   - *Recortar del PDF*: abre el catálogo (se lee en el navegador, no se sube), va a la primera página con productos sin foto, eliges el producto, arrastras un recuadro y guardas. La página se dibuja a ~300 ppp.
   - *Subir fotos en lote*: eliges muchas fotos a la vez nombradas con el código (`15.jpg` o `yanbal-15.jpg`); cada una se asigna a su producto.
 - **Revisar un CSV sin la base real**: `npx tsx scripts/validar-csv.ts archivo.csv --revistas=Fuxion,L\'Bel` simula la importación en memoria.
+- **Carga grande desde tu computador** (miles de productos): `npm run importar -- catalogos/csv/*.csv` usa el mismo importador pero directo a Mongo, sin el límite de CPU del plan gratis de Cloudflare (10 ms por petición). `--revisar` solo revisa. Los CSV extraídos de los catálogos están en `catalogos/csv/`.
 - **Cambio de campaña**: importar el CSV de la campaña nueva con "Marcar la campaña como vigente" y ocultar los que salieron.
 
 ### Pedidos
