@@ -14,6 +14,7 @@ import { errorAccion, type EstadoAccion } from '@/servidor/respuestas';
 import { abrirSesion, cerrarSesion, requerirSesion } from '@/servidor/sesion';
 import { headers } from 'next/headers';
 import type { ReporteImportacion } from '@/application/catalogo/importacion';
+import type { Media } from '@/domain/media';
 
 const ok = (mensaje: string): EstadoAccion => ({ ok: true, mensaje });
 const json = (fd: FormData, campo = 'datos') => JSON.parse(String(fd.get(campo) ?? '{}'));
@@ -113,6 +114,23 @@ export async function accionVisibilidad(fd: FormData) {
   await casos().productos.cambiarVisibilidad(texto(fd, 'id'), { [campo]: texto(fd, 'valor') === '1' });
   invalidarCatalogo();
   revalidatePath('/admin/productos');
+}
+
+// ---------- Fotos por lotes y recorte del PDF ----------
+export type ProductoParaFoto = { codigo: string; nombre: string; pagina: number | null; fotos: number };
+
+export async function accionProductosParaFotos(revistaId: string): Promise<ProductoParaFoto[]> {
+  await requerirSesion();
+  return casos().productos.listarParaFotos(revistaId);
+}
+
+export async function accionAsignarFoto(revistaId: string, codigo: string, foto: Media): Promise<EstadoAccion> {
+  await requerirSesion();
+  try {
+    const p = await casos().productos.agregarFotoPorCodigo(revistaId, codigo, foto);
+    invalidarCatalogo();
+    return ok(`Foto guardada en ${p.nombre}`);
+  } catch (e) { return errorAccion(e); }
 }
 
 // ---------- Revistas y campañas ----------

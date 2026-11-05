@@ -1,4 +1,5 @@
 import { datosProductoSchema, type DatosProducto, type Producto } from '@/domain/catalogo/producto';
+import { esMediaValida, type Media } from '@/domain/media';
 import { conflicto, invalido, noEncontrado } from '@/domain/shared/errores';
 import type { Dependencias } from '../puertos';
 import { validar } from '../validar';
@@ -105,5 +106,28 @@ export function casosProductos(d: D) {
     return n;
   }
 
-  return { crear, actualizar, duplicar, eliminar, cambiarVisibilidad, ordenarTV, ocultar };
+  /**
+   * Pone una foto como principal del producto identificado por revista + código (subida por
+   * lotes o recorte desde el PDF). Si la foto ya estaba, solo la mueve al primer lugar.
+   */
+  async function agregarFotoPorCodigo(revistaId: string, codigo: string, foto: Media): Promise<Producto> {
+    if (!esMediaValida(foto) || foto.tipo !== 'imagen') throw invalido('La foto no es válida');
+    const producto = await d.productos.porCodigo(revistaId, codigo.trim());
+    if (!producto) throw noEncontrado(`El código ${codigo}`);
+    const imagenes = [foto, ...producto.imagenes.filter((m) => m.ref !== foto.ref)].slice(0, 8);
+    const actualizado: Producto = { ...producto, imagenes, actualizadoEn: d.reloj.ahora() };
+    await d.productos.guardar(actualizado);
+    await marcarCambioCatalogo(d);
+    return actualizado;
+  }
+
+  /** Lista corta de los productos de una revista para asignarles fotos. */
+  async function listarParaFotos(revistaId: string): Promise<{ codigo: string; nombre: string; pagina: number | null; fotos: number }[]> {
+    const productos = await d.productos.listarPorRevista(revistaId);
+    return productos
+      .map((p) => ({ codigo: p.codigo, nombre: p.nombre, pagina: p.paginaCatalogo, fotos: p.imagenes.filter((m) => m.tipo === 'imagen').length }))
+      .sort((a, b) => (a.pagina ?? 1e9) - (b.pagina ?? 1e9) || a.codigo.localeCompare(b.codigo, 'es', { numeric: true }));
+  }
+
+  return { crear, actualizar, duplicar, eliminar, cambiarVisibilidad, ordenarTV, ocultar, agregarFotoPorCodigo, listarParaFotos };
 }

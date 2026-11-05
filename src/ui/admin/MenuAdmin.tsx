@@ -9,6 +9,7 @@ const ENLACES = [
   { href: '/admin/productos', texto: 'Productos' },
   { href: '/admin/revistas', texto: 'Revistas' },
   { href: '/admin/categorias', texto: 'Categorías' },
+  { href: '/admin/fotos', texto: 'Fotos' },
   { href: '/admin/importar', texto: 'Importar / exportar' },
   { href: '/admin/tv', texto: 'Televisor' },
   { href: '/admin/configuracion', texto: 'Configuración' },

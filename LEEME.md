@@ -116,6 +116,10 @@ La alternativa por consola sigue disponible: `npm run db:semilla` y `npm run cre
 
 - **Uno por uno**: *Panel → Productos → Nuevo*. Revista, código, nombre, categoría, fotos (se achican solas desde el celular) y si sale en la tienda y en el TV.
 - **En bloque**: *Panel → Importar / exportar*. CSV con las columnas `revista, codigo, nombre, linea, categoria, subcategoria, contenido, descripcion, caracteristicas, campana, pagina_pdf, imagen, disponibilidad, etiqueta, visible_tienda, visible_tv`. Primero *Revisar* (no guarda nada) y luego *Importar*. Si el código ya existe se actualiza; si no, se crea. Al terminar lista los productos que no vinieron en el archivo para ocultarlos de un clic.
+- **Fotos**: *Panel → Fotos*. Dos formas, ambas por revista + código:
+  - *Recortar del PDF*: abre el catálogo (se lee en el navegador, no se sube), va a la primera página con productos sin foto, eliges el producto, arrastras un recuadro y guardas. La página se dibuja a ~300 ppp.
+  - *Subir fotos en lote*: eliges muchas fotos a la vez nombradas con el código (`15.jpg` o `yanbal-15.jpg`); cada una se asigna a su producto.
+- **Revisar un CSV sin la base real**: `npx tsx scripts/validar-csv.ts archivo.csv --revistas=Fuxion,L\'Bel` simula la importación en memoria.
 - **Cambio de campaña**: importar el CSV de la campaña nueva con "Marcar la campaña como vigente" y ocultar los que salieron.
 
 ### Pedidos

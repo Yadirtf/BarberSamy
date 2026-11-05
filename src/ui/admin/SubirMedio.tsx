@@ -10,7 +10,7 @@ import type { Media, TipoMedia } from '@/domain/media';
  */
 const LADO_MAXIMO = 1600;
 
-async function comprimirImagen(archivo: File): Promise<Blob> {
+async function comprimirImagen(archivo: File | Blob): Promise<Blob> {
   if (!/^image\/(jpeg|png|webp)$/.test(archivo.type)) return archivo;
   const bitmap = await createImageBitmap(archivo).catch(() => null);
   if (!bitmap) return archivo;
@@ -24,7 +24,7 @@ async function comprimirImagen(archivo: File): Promise<Blob> {
   return new Promise((ok) => canvas.toBlob((b) => ok(b ?? archivo), tipo, 0.86));
 }
 
-async function subir(archivo: File, tipo: TipoMedia, carpeta: string): Promise<Media> {
+export async function subir(archivo: File | Blob, tipo: TipoMedia, carpeta: string): Promise<Media> {
   const firma = await fetch('/api/admin/medios/firma', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -35,7 +35,7 @@ async function subir(archivo: File, tipo: TipoMedia, carpeta: string): Promise<M
     return d as { cloudName: string; apiKey: string; timestamp: number; firma: string; carpeta: string };
   });
   const cuerpo = new FormData();
-  cuerpo.append('file', tipo === 'imagen' ? await comprimirImagen(archivo) : archivo);
+  cuerpo.append('file', tipo === 'imagen' ? await comprimirImagen(archivo) : archivo, 'foto');
   cuerpo.append('api_key', firma.apiKey);
   cuerpo.append('timestamp', String(firma.timestamp));
   cuerpo.append('signature', firma.firma);
