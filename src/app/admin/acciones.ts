@@ -248,20 +248,26 @@ export async function accionGuardarConfiguracion(_: EstadoAccion, fd: FormData):
 }
 
 // ---------- Importación ----------
-export type EstadoImportacion = (EstadoAccion & { reporte?: ReporteImportacion }) | null;
-
-export async function accionImportar(_: EstadoImportacion, fd: FormData): Promise<EstadoImportacion> {
+/** Una tanda del CSV (el navegador parte el archivo para no pasar el límite de CPU de Cloudflare). */
+export async function accionImportarTanda(
+  textoCsv: string,
+  opciones: { simular: boolean; campanaVigente: boolean; filaInicial: number },
+): Promise<{ ok: true; reporte: ReporteImportacion } | { ok: false; mensaje: string }> {
   await requerirSesion();
   try {
-    const archivo = fd.get('archivo');
-    if (!(archivo instanceof File) || !archivo.size) return { ok: false, mensaje: 'Elige un archivo CSV' };
-    if (archivo.size > 3_000_000) return { ok: false, mensaje: 'El archivo es muy grande (máx. 3 MB). Divídelo por revista.' };
-    const simular = fd.get('modo') !== 'importar';
-    const reporte = await casos().importacion.importar(await archivo.text(), { simular, campanaVigente: fd.get('vigente') === 'on' });
-    if (!simular) invalidarCatalogo();
-    const resumen = `${reporte.creados} nuevos, ${reporte.actualizados} actualizados, ${reporte.errores.length} con error`;
-    return { ok: reporte.errores.length === 0, mensaje: simular ? `Revisión (no se guardó nada): ${resumen}` : `Importado: ${resumen}`, reporte };
-  } catch (e) { return errorAccion(e); }
+    if (textoCsv.length > 400_000) return { ok: false, mensaje: 'Tanda demasiado grande' };
+    const reporte = await casos().importacion.importar(textoCsv, { ...opciones, ausentes: false });
+    if (!opciones.simular) invalidarCatalogo();
+    return { ok: true, reporte };
+  } catch (e) {
+    return { ok: false, mensaje: errorAccion(e)?.mensaje ?? 'Error' };
+  }
+}
+
+/** Al terminar todas las tandas: productos visibles que no vinieron en el archivo. */
+export async function accionAusentes(codigosPorRevista: Record<string, string[]>): Promise<ReporteImportacion['ausentes']> {
+  await requerirSesion();
+  return casos().importacion.ausentes(codigosPorRevista);
 }
 
 export async function accionOcultarProductos(_: EstadoAccion, fd: FormData): Promise<EstadoAccion> {

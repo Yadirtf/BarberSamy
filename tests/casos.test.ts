@@ -191,6 +191,25 @@ describe('fotos por código', () => {
   });
 });
 
+describe('importación CSV en tandas', () => {
+  it('numera las filas como en el archivo completo y calcula los ausentes aparte', async () => {
+    const d = dependenciasEnMemoria();
+    const { yanbal } = await preparar(d);
+    const extra = await casosProductos(d).crear({ revistaId: yanbal.id, codigo: '777', nombre: 'Viejo' });
+    const imp = casosImportacion(d);
+    const enc = 'revista,codigo,nombre,campana';
+    const r1 = await imp.importar([enc, 'yanbal,A1,Uno,C1', 'yanbal,A2,Dos,C1'].join('\n'), { ausentes: false, filaInicial: 2 });
+    const r2 = await imp.importar([enc, 'yanbal,A3,Tres,C1', 'yanbal,,Sin código,C1'].join('\n'), { ausentes: false, filaInicial: 4 });
+    expect([r1.creados, r2.creados]).toEqual([2, 1]);
+    expect(r1.ausentes).toEqual([]);
+    expect(r2.errores).toEqual([{ fila: 5, mensaje: 'Falta código o nombre' }]);
+    const aus = await imp.ausentes({ yanbal: ['A1', 'A2', 'A3', '12345'] });
+    expect(aus.map((a) => a.id)).toContain(extra.id);
+    expect(aus.map((a) => a.codigo)).not.toContain('A1');
+    expect((await d.campanas.listarPorRevista(yanbal.id)).filter((c) => c.codigo === 'C1')).toHaveLength(1);
+  });
+});
+
 describe('importación CSV', () => {
   let d: Deps;
   beforeEach(() => { d = dependenciasEnMemoria(); });

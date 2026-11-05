@@ -123,9 +123,9 @@ export function casosProductos(d: D) {
 
   /** Lista corta de los productos de una revista para asignarles fotos. */
   async function listarParaFotos(revistaId: string): Promise<{ codigo: string; nombre: string; pagina: number | null; fotos: number }[]> {
-    const productos = await d.productos.listarPorRevista(revistaId);
+    const productos = await d.productos.resumenPorRevista(revistaId);
     return productos
-      .map((p) => ({ codigo: p.codigo, nombre: p.nombre, pagina: p.paginaCatalogo, fotos: p.imagenes.filter((m) => m.tipo === 'imagen').length }))
+      .map((p) => ({ codigo: p.codigo, nombre: p.nombre, pagina: p.pagina, fotos: p.fotos }))
       .sort((a, b) => (a.pagina ?? 1e9) - (b.pagina ?? 1e9) || a.codigo.localeCompare(b.codigo, 'es', { numeric: true }));
   }
 
