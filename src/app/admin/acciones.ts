@@ -256,17 +256,21 @@ export async function accionImportarTanda(
   await requerirSesion();
   try {
     if (textoCsv.length > 400_000) return { ok: false, mensaje: 'Tanda demasiado grande' };
+    // La caché pública se invalida una sola vez al final (accionTerminarImportacion).
     const reporte = await casos().importacion.importar(textoCsv, { ...opciones, ausentes: false });
-    if (!opciones.simular) invalidarCatalogo();
     return { ok: true, reporte };
   } catch (e) {
     return { ok: false, mensaje: errorAccion(e)?.mensaje ?? 'Error' };
   }
 }
 
-/** Al terminar todas las tandas: productos visibles que no vinieron en el archivo. */
-export async function accionAusentes(codigosPorRevista: Record<string, string[]>): Promise<ReporteImportacion['ausentes']> {
+/** Al terminar todas las tandas: refresca la tienda y lista los visibles que no vinieron en el archivo. */
+export async function accionTerminarImportacion(
+  codigosPorRevista: Record<string, string[]>,
+  simular: boolean,
+): Promise<ReporteImportacion['ausentes']> {
   await requerirSesion();
+  if (!simular) invalidarCatalogo();
   return casos().importacion.ausentes(codigosPorRevista);
 }
 

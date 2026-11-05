@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import type { ReporteImportacion } from '@/application/catalogo/importacion';
-import { accionAusentes, accionImportarTanda, accionOcultarProductos } from '@/app/admin/acciones';
+import { accionImportarTanda, accionOcultarProductos, accionTerminarImportacion } from '@/app/admin/acciones';
 import { escribirCsv, leerCsv } from '@/domain/shared/csv';
 import { slugificar } from '@/domain/shared/texto';
 import { BotonEnviar, Mensaje } from '@/ui/admin/Formulario';
@@ -13,7 +13,9 @@ import type { EstadoAccion } from '@/servidor/respuestas';
  * se manda en tandas pequeñas. Si una tanda falla, lo anterior ya quedó guardado y volver a
  * importar el mismo archivo solo actualiza (se identifica por revista + código).
  */
-const FILAS_POR_TANDA = 25;
+const FILAS_POR_TANDA = 20;
+const REINTENTOS = 2;
+const esperar = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
 
 type Fila = { numero: number; datos: Record<string, string> };
 
@@ -53,29 +55,43 @@ export function Importar() {
         filas.push({ numero, datos });
       });
 
-      const tandas = Math.ceil(filas.length / FILAS_POR_TANDA);
-      for (let t = 0; t < tandas; t++) {
-        const tanda = filas.slice(t * FILAS_POR_TANDA, (t + 1) * FILAS_POR_TANDA);
-        setProgreso(`${simular ? 'Revisando' : 'Importando'}: tanda ${t + 1} de ${tandas} (filas ${tanda[0].numero} a ${tanda[tanda.length - 1].numero})`);
-        let res: Awaited<ReturnType<typeof accionImportarTanda>>;
-        try {
-          res = await accionImportarTanda(escribirCsv(columnas, tanda.map((f) => f.datos)), { simular, campanaVigente: vigente, filaInicial: 2 });
-        } catch {
-          // Reintenta una vez: un corte de red o un tope momentáneo del servidor.
+      /**
+       * Envía una tanda. Si el servidor no responde (p. ej. el tope de CPU de Cloudflare),
+       * reintenta y, si sigue fallando, la parte en dos. Reenviar es seguro: lo que ya se
+       * guardó se encuentra por revista + código y solo se actualiza.
+       */
+      const enviar = async (tanda: Fila[]): Promise<void> => {
+        let res: Awaited<ReturnType<typeof accionImportarTanda>> | null = null;
+        for (let intento = 0; intento <= REINTENTOS && !res; intento++) {
+          if (intento) await esperar(1500 * intento);
           res = await accionImportarTanda(escribirCsv(columnas, tanda.map((f) => f.datos)), { simular, campanaVigente: vigente, filaInicial: 2 })
-            .catch(() => ({ ok: false as const, mensaje: 'El servidor no respondió' }));
+            .catch(() => null);
         }
-        if (!res.ok) {
-          const hecho = simular ? '' : ` Las filas anteriores a la ${tanda[0].numero} ya quedaron guardadas; vuelve a importar el archivo para continuar.`;
-          throw new Error(`Falló la tanda ${t + 1} de ${tandas}: ${res.mensaje}.${hecho}`);
+        if (!res && tanda.length > 1) {
+          const mitad = Math.ceil(tanda.length / 2);
+          await enviar(tanda.slice(0, mitad));
+          await enviar(tanda.slice(mitad));
+          return;
+        }
+        if (!res || !res.ok) {
+          const motivo = res && !res.ok ? res.mensaje : 'el servidor no respondió';
+          for (const f of tanda) reporte.errores.push({ fila: f.numero, mensaje: `No se pudo procesar (${motivo}). Vuelve a importar el archivo.` });
+          return;
         }
         reporte.creados += res.reporte.creados;
         reporte.actualizados += res.reporte.actualizados;
         for (const e of res.reporte.errores) reporte.errores.push({ fila: tanda[e.fila - 2]?.numero ?? e.fila, mensaje: e.mensaje });
+      };
+
+      const tandas = Math.ceil(filas.length / FILAS_POR_TANDA);
+      for (let t = 0; t < tandas; t++) {
+        const tanda = filas.slice(t * FILAS_POR_TANDA, (t + 1) * FILAS_POR_TANDA);
+        setProgreso(`${simular ? 'Revisando' : 'Importando'}: tanda ${t + 1} de ${tandas} (filas ${tanda[0].numero} a ${tanda[tanda.length - 1].numero})`);
+        await enviar(tanda);
       }
 
       setProgreso('Buscando productos que no vinieron en el archivo…');
-      reporte.ausentes = await accionAusentes(codigosPorRevista).catch(() => []);
+      reporte.ausentes = await accionTerminarImportacion(codigosPorRevista, simular).catch(() => []);
       reporte.errores.sort((a, b) => a.fila - b.fila);
       const resumen = `${reporte.creados} nuevos, ${reporte.actualizados} actualizados, ${reporte.errores.length} con error`;
       setEstado({ ok: reporte.errores.length === 0, mensaje: simular ? `Revisión (no se guardó nada): ${resumen}` : `Importado: ${resumen}` });
