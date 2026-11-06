@@ -12,7 +12,7 @@
  *
  * PowerShell y cmd de Windows no expanden "*.csv", así que el script lo hace por su cuenta.
  * Es seguro repetirlo: cada producto se identifica por revista + código y se actualiza.
- * La tienda muestra los cambios en máximo 5 minutos (vence la caché).
+ * La tienda muestra los cambios en máximo 10 minutos, o al instante con "Actualizar la tienda ahora" en Importar / exportar.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
