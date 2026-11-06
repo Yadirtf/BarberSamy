@@ -1,11 +1,24 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { accionAsignarFoto, accionProductosParaFotos, type ProductoParaFoto } from '@/app/admin/acciones';
+import { accionAsignarFoto, accionProductosParaFotos, accionRefrescarTienda, type ProductoParaFoto } from '@/app/admin/acciones';
 import { subir } from '@/ui/admin/SubirMedio';
 
 type RevistaCorta = { id: string; nombre: string; slug: string };
 const CARPETA = 'tienda/productos';
+
+/**
+ * Reintenta una acción del servidor si no responde (p. ej. el tope de CPU de Cloudflare).
+ * Es seguro: asignar la misma foto dos veces no la duplica.
+ */
+async function conReintentos<T>(fn: () => Promise<T>, intentos = 3): Promise<T> {
+  for (let i = 0; ; i++) {
+    try { return await fn(); } catch (e) {
+      if (i >= intentos - 1) throw e;
+      await new Promise((ok) => setTimeout(ok, 1500 * (i + 1)));
+    }
+  }
+}
 
 /** Código a partir del nombre del archivo: "15.jpg", "yanbal-15.webp" o "YANBAL_15.png" → "15". */
 export function codigoDesdeArchivo(nombre: string, slugRevista: string): string {
@@ -62,26 +75,33 @@ export function Fotos({ revistas }: { revistas: RevistaCorta[] }) {
 // ---------------------------------------------------------------------------
 function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; productos: ProductoParaFoto[]; onGuardada: (c: string) => void }) {
   const [estado, setEstado] = useState<string | null>(null);
-  const [reporte, setReporte] = useState<{ ok: number; sinProducto: string[]; errores: string[] } | null>(null);
+  const [reporte, setReporte] = useState<{ ok: number; sinProducto: string[]; conFoto: string[]; errores: string[] } | null>(null);
   const [cuadrar, setCuadrar] = useState(true);
-  const codigos = useMemo(() => new Map(productos.map((p) => [p.codigo.toUpperCase(), p.codigo])), [productos]);
+  const [saltarConFoto, setSaltarConFoto] = useState(true);
+  const codigos = useMemo(() => new Map(productos.map((p) => [p.codigo.toUpperCase(), p])), [productos]);
 
   async function alElegir(e: React.ChangeEvent<HTMLInputElement>) {
     const archivos = [...(e.target.files ?? [])].filter((a) => a.type.startsWith('image/'));
     e.target.value = '';
-    const r = { ok: 0, sinProducto: [] as string[], errores: [] as string[] };
+    const r = { ok: 0, sinProducto: [] as string[], conFoto: [] as string[], errores: [] as string[] };
     for (let i = 0; i < archivos.length; i++) {
       const a = archivos[i];
-      const codigo = codigos.get(codigoDesdeArchivo(a.name, revista.slug).toUpperCase());
-      if (!codigo) { r.sinProducto.push(a.name); continue; }
+      const producto = codigos.get(codigoDesdeArchivo(a.name, revista.slug).toUpperCase());
+      if (!producto) { r.sinProducto.push(a.name); continue; }
+      // Volver a elegir la carpeta completa no duplica: se saltan los que ya tienen foto.
+      if (saltarConFoto && producto.fotos > 0) { r.conFoto.push(a.name); continue; }
       setEstado(`Subiendo ${i + 1} de ${archivos.length}: ${a.name}`);
       try {
         const foto = await subir(cuadrar ? await cuadrarArchivo(a) : a, 'imagen', CARPETA);
-        const res = await accionAsignarFoto(revista.id, codigo, foto);
-        if (res?.ok) { r.ok++; onGuardada(codigo); } else r.errores.push(`${a.name}: ${res?.mensaje ?? 'error'}`);
+        const res = await conReintentos(() => accionAsignarFoto(revista.id, producto.codigo, foto, false));
+        if (res?.ok) { r.ok++; onGuardada(producto.codigo); } else r.errores.push(`${a.name}: ${res?.mensaje ?? 'error'}`);
       } catch (err) {
-        r.errores.push(`${a.name}: ${(err as Error).message}`);
+        r.errores.push(`${a.name}: el servidor no respondió (${(err as Error).message}). Vuelve a elegir las fotos: las que ya quedaron se saltan.`);
       }
+    }
+    if (r.ok) {
+      setEstado('Actualizando la tienda…');
+      await conReintentos(() => accionRefrescarTienda(null)).catch(() => undefined);
     }
     setEstado(null);
     setReporte(r);
@@ -95,6 +115,7 @@ function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; 
         Las fotos de celular se achican solas antes de subir. Los archivos cuyo código no exista en {revista.nombre} se saltan.
       </p>
       <label className="check"><input type="checkbox" checked={cuadrar} onChange={(e) => setCuadrar(e.target.checked)} /> Dejarlas cuadradas de {LADO}×{LADO}, centradas y con margen (las PNG sin fondo siguen sin fondo)</label>
+      <label className="check"><input type="checkbox" checked={saltarConFoto} onChange={(e) => setSaltarConFoto(e.target.checked)} /> Saltar los productos que ya tienen foto (así puedes volver a elegir todas sin duplicar)</label>
       <label className="btn btn-primario" style={{ alignSelf: 'flex-start' }}>
         {estado ? 'Subiendo…' : 'Elegir fotos'}
         <input type="file" accept="image/*" multiple hidden disabled={!!estado} onChange={alElegir} />
@@ -103,6 +124,9 @@ function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; 
       {reporte && (
         <div className="pila">
           <p className="aviso">{reporte.ok} fotos asignadas.</p>
+          {reporte.conFoto.length > 0 && (
+            <details><summary>{reporte.conFoto.length} saltadas porque el producto ya tiene foto</summary><p className="pequeno">{reporte.conFoto.join(', ')}</p></details>
+          )}
           {reporte.sinProducto.length > 0 && (
             <details><summary>{reporte.sinProducto.length} archivos sin producto con ese código</summary><p className="pequeno">{reporte.sinProducto.join(', ')}</p></details>
           )}
@@ -298,7 +322,7 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
       const recorte = componer(canvas.current, seleccion, tapas, cuadrar);
       const blob = await new Promise<Blob>((ok, mal) => recorte.toBlob((b) => (b ? ok(b) : mal(new Error('No se pudo crear la imagen'))), 'image/webp', 0.92));
       const foto = await subir(blob, 'imagen', CARPETA);
-      const res = await accionAsignarFoto(revista.id, codigo, foto);
+      const res = await conReintentos(() => accionAsignarFoto(revista.id, codigo, foto, false));
       if (!res?.ok) throw new Error(res?.mensaje ?? 'No se pudo guardar');
       onGuardada(codigo);
       setMensaje({ ok: true, texto: `${res.mensaje} (${codigo})` });
