@@ -303,6 +303,10 @@ table.tabla { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .recorte-lienzo { position: relative; margin-top: 10px; width: fit-content; max-width: 100%; border: 1px solid var(--borde); border-radius: 8px; overflow: hidden; touch-action: none; }
 .recorte-lienzo canvas { display: block; width: auto; height: auto; max-width: 100%; max-height: calc(100vh - 120px); cursor: crosshair; }
 .recorte-marco { position: absolute; border: 2px dashed var(--primario); background: rgba(255, 255, 255, .18); box-shadow: 0 0 0 9999px rgba(0, 0, 0, .28); pointer-events: none; }
+.recorte-codigo { position: absolute; border: 2px solid rgba(214, 51, 132, .45); border-radius: 4px; pointer-events: none; }
+.recorte-codigo.activo { border: 3px solid var(--primario); background: rgba(255, 230, 0, .45); box-shadow: 0 0 0 4px rgba(255, 230, 0, .5); animation: latido 1.2s ease-in-out infinite; }
+@keyframes latido { 50% { box-shadow: 0 0 0 9px rgba(255, 230, 0, .25); } }
+.recorte-tapa { position: absolute; background: repeating-linear-gradient(45deg, rgba(0,0,0,.55) 0 6px, rgba(255,255,255,.55) 6px 12px); pointer-events: none; }
 .recorte-panel { position: sticky; top: 12px; }
 .recorte-lista { max-height: 300px; overflow-y: auto; }
 .recorte-previa { max-width: 100%; max-height: 260px; object-fit: contain; border: 1px solid var(--borde); border-radius: 8px; background: #fff; }

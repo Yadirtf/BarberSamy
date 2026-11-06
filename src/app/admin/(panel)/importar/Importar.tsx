@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import type { ReporteImportacion } from '@/application/catalogo/importacion';
-import { accionImportarTanda, accionOcultarProductos, accionTerminarImportacion } from '@/app/admin/acciones';
+import { accionImportarTanda, accionOcultarProductos, accionRefrescarTienda, accionTerminarImportacion } from '@/app/admin/acciones';
 import { escribirCsv, leerCsv } from '@/domain/shared/csv';
 import { slugificar } from '@/domain/shared/texto';
 import { BotonEnviar, Mensaje } from '@/ui/admin/Formulario';
@@ -27,6 +27,7 @@ export function Importar() {
   const [estado, setEstado] = useState<EstadoAccion>(null);
   const [r, setReporte] = useState<ReporteImportacion | null>(null);
   const [estadoOcultar, ocultar] = useActionState(accionOcultarProductos, null);
+  const [estadoRefrescar, refrescar] = useActionState(accionRefrescarTienda, null);
 
   async function ejecutar(simular: boolean) {
     if (!archivo) { setEstado({ ok: false, mensaje: 'Elige un archivo CSV' }); return; }
@@ -140,6 +141,11 @@ export function Importar() {
           <Mensaje estado={estadoOcultar} />
         </form>
       )}
+      <form action={refrescar} className="fila">
+        <BotonEnviar clase="btn btn-chico">Actualizar la tienda ahora</BotonEnviar>
+        <span className="suave pequeno">Úsalo si cargaste productos con <code>npm run importar</code>; si no, la tienda se pone al día sola en unos 10 minutos.</span>
+        <Mensaje estado={estadoRefrescar} />
+      </form>
       {r && r.simulado && r.ausentes.length > 0 && (
         <p className="aviso pequeno">Al importar, {r.ausentes.length} productos visibles de estas revistas no vienen en el archivo; podrás ocultarlos de un clic.</p>
       )}

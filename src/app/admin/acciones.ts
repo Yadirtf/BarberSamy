@@ -49,7 +49,7 @@ export async function accionInstalar(_: EstadoAccion, fd: FormData): Promise<Est
       },
       entorno().secretoSesion,
     );
-    invalidarCatalogo();
+    await invalidarCatalogo();
     await abrirSesion(s);
   } catch (e) {
     return errorAccion(e);
@@ -88,7 +88,7 @@ export async function accionGuardarProducto(_: EstadoAccion, fd: FormData): Prom
   try {
     const c = casos().productos;
     const p = id ? await c.actualizar(id, json(fd)) : await c.crear(json(fd));
-    invalidarCatalogo();
+    await invalidarCatalogo();
     if (id) return ok('Cambios guardados');
     destino = `/admin/productos/${p.id}?creado=1`;
   } catch (e) { return errorAccion(e); }
@@ -104,7 +104,7 @@ export async function accionDuplicarProducto(fd: FormData) {
 export async function accionEliminarProducto(fd: FormData) {
   await requerirSesion();
   await casos().productos.eliminar(texto(fd, 'id'));
-  invalidarCatalogo();
+  await invalidarCatalogo();
   redirect('/admin/productos?eliminado=1');
 }
 
@@ -112,7 +112,7 @@ export async function accionVisibilidad(fd: FormData) {
   await requerirSesion();
   const campo = texto(fd, 'campo') === 'visibleTV' ? 'visibleTV' : 'visibleTienda';
   await casos().productos.cambiarVisibilidad(texto(fd, 'id'), { [campo]: texto(fd, 'valor') === '1' });
-  invalidarCatalogo();
+  await invalidarCatalogo();
   revalidatePath('/admin/productos');
 }
 
@@ -128,7 +128,7 @@ export async function accionAsignarFoto(revistaId: string, codigo: string, foto:
   await requerirSesion();
   try {
     const p = await casos().productos.agregarFotoPorCodigo(revistaId, codigo, foto);
-    invalidarCatalogo();
+    await invalidarCatalogo();
     return ok(`Foto guardada en ${p.nombre}`);
   } catch (e) { return errorAccion(e); }
 }
@@ -141,7 +141,7 @@ export async function accionGuardarRevista(_: EstadoAccion, fd: FormData): Promi
   try {
     const c = casos().revistas;
     const r = id ? await c.actualizar(id, json(fd)) : await c.crear(json(fd));
-    invalidarCatalogo();
+    await invalidarCatalogo();
     if (id) return ok('Revista guardada');
     destino = `/admin/revistas/${r.id}`;
   } catch (e) { return errorAccion(e); }
@@ -152,7 +152,7 @@ export async function accionEliminarRevista(_: EstadoAccion, fd: FormData): Prom
   await requerirSesion();
   try {
     await casos().revistas.eliminar(texto(fd, 'id'));
-    invalidarCatalogo();
+    await invalidarCatalogo();
   } catch (e) { return errorAccion(e); }
   redirect('/admin/revistas');
 }
@@ -165,7 +165,7 @@ export async function accionCrearCampana(_: EstadoAccion, fd: FormData): Promise
       { revistaId, codigo: texto(fd, 'codigo'), inicio: texto(fd, 'inicio') || null, fin: texto(fd, 'fin') || null },
       fd.get('vigente') === 'on',
     );
-    invalidarCatalogo();
+    await invalidarCatalogo();
     revalidatePath(`/admin/revistas/${revistaId}`);
     return ok('Campaña creada');
   } catch (e) { return errorAccion(e); }
@@ -175,7 +175,7 @@ export async function accionEliminarCampana(_: EstadoAccion, fd: FormData): Prom
   await requerirSesion();
   try {
     await casos().revistas.eliminarCampana(texto(fd, 'id'));
-    invalidarCatalogo();
+    await invalidarCatalogo();
     revalidatePath(`/admin/revistas/${texto(fd, 'revistaId')}`);
     return ok('Campaña eliminada');
   } catch (e) { return errorAccion(e); }
@@ -189,7 +189,7 @@ export async function accionGuardarCategoria(_: EstadoAccion, fd: FormData): Pro
     const datos = { nombre: texto(fd, 'nombre'), icono: texto(fd, 'icono'), orden: texto(fd, 'orden') || 0, padreId: texto(fd, 'padreId') || null, slug: texto(fd, 'slug') || undefined };
     if (id) await casos().categorias.actualizar(id, datos);
     else await casos().categorias.crear(datos);
-    invalidarCatalogo();
+    await invalidarCatalogo();
     revalidatePath('/admin/categorias');
     return ok(id ? 'Categoría guardada' : 'Categoría creada');
   } catch (e) { return errorAccion(e); }
@@ -199,7 +199,7 @@ export async function accionEliminarCategoria(_: EstadoAccion, fd: FormData): Pr
   await requerirSesion();
   try {
     await casos().categorias.eliminar(texto(fd, 'id'));
-    invalidarCatalogo();
+    await invalidarCatalogo();
     revalidatePath('/admin/categorias');
     return ok('Categoría eliminada');
   } catch (e) { return errorAccion(e); }
@@ -225,7 +225,7 @@ export async function accionGuardarTV(_: EstadoAccion, fd: FormData): Promise<Es
     const c = casos();
     await c.configuracion.guardarTV(datos.ajustes);
     for (const [revistaId, ids] of Object.entries(datos.ordenProductos ?? {})) await c.productos.ordenarTV(revistaId, ids);
-    invalidarCatalogo();
+    await invalidarCatalogo();
     return ok('Televisor actualizado. El TV toma los cambios en menos de 5 minutos.');
   } catch (e) { return errorAccion(e); }
 }
@@ -242,7 +242,7 @@ export async function accionGuardarConfiguracion(_: EstadoAccion, fd: FormData):
       infoEntrega: texto(fd, 'infoEntrega'),
       mediosPago: texto(fd, 'mediosPago'),
     });
-    invalidarCatalogo();
+    await invalidarCatalogo();
     return ok('Configuración guardada');
   } catch (e) { return errorAccion(e); }
 }
@@ -270,7 +270,7 @@ export async function accionTerminarImportacion(
   simular: boolean,
 ): Promise<ReporteImportacion['ausentes']> {
   await requerirSesion();
-  if (!simular) invalidarCatalogo();
+  if (!simular) await invalidarCatalogo();
   return casos().importacion.ausentes(codigosPorRevista);
 }
 
@@ -279,7 +279,14 @@ export async function accionOcultarProductos(_: EstadoAccion, fd: FormData): Pro
   try {
     const ids = fd.getAll('ids').map(String).filter(Boolean);
     const n = await casos().productos.ocultar(ids);
-    invalidarCatalogo();
+    await invalidarCatalogo();
     return ok(`${n} productos ocultados`);
   } catch (e) { return errorAccion(e); }
+}
+
+/** Botón "Actualizar la tienda ahora": útil tras cargar productos por fuera del panel (npm run importar). */
+export async function accionRefrescarTienda(_: EstadoAccion): Promise<EstadoAccion> {
+  await requerirSesion();
+  await invalidarCatalogo();
+  return ok('Listo: la tienda ya muestra los datos actuales.');
 }

@@ -63,6 +63,7 @@ export function Fotos({ revistas }: { revistas: RevistaCorta[] }) {
 function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; productos: ProductoParaFoto[]; onGuardada: (c: string) => void }) {
   const [estado, setEstado] = useState<string | null>(null);
   const [reporte, setReporte] = useState<{ ok: number; sinProducto: string[]; errores: string[] } | null>(null);
+  const [cuadrar, setCuadrar] = useState(true);
   const codigos = useMemo(() => new Map(productos.map((p) => [p.codigo.toUpperCase(), p.codigo])), [productos]);
 
   async function alElegir(e: React.ChangeEvent<HTMLInputElement>) {
@@ -75,7 +76,7 @@ function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; 
       if (!codigo) { r.sinProducto.push(a.name); continue; }
       setEstado(`Subiendo ${i + 1} de ${archivos.length}: ${a.name}`);
       try {
-        const foto = await subir(a, 'imagen', CARPETA);
+        const foto = await subir(cuadrar ? await cuadrarArchivo(a) : a, 'imagen', CARPETA);
         const res = await accionAsignarFoto(revista.id, codigo, foto);
         if (res?.ok) { r.ok++; onGuardada(codigo); } else r.errores.push(`${a.name}: ${res?.mensaje ?? 'error'}`);
       } catch (err) {
@@ -93,6 +94,7 @@ function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; 
         Nombra cada foto con el <b>código</b> del producto (por ejemplo <code>15.jpg</code> o <code>{revista.slug}-15.jpg</code>) y elígelas todas juntas.
         Las fotos de celular se achican solas antes de subir. Los archivos cuyo código no exista en {revista.nombre} se saltan.
       </p>
+      <label className="check"><input type="checkbox" checked={cuadrar} onChange={(e) => setCuadrar(e.target.checked)} /> Dejarlas cuadradas de {LADO}×{LADO}, centradas y con margen (recomendado)</label>
       <label className="btn btn-primario" style={{ alignSelf: 'flex-start' }}>
         {estado ? 'Subiendo…' : 'Elegir fotos'}
         <input type="file" accept="image/*" multiple hidden disabled={!!estado} onChange={alElegir} />
@@ -117,11 +119,47 @@ function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; 
 // Recorte desde el PDF: el PDF se abre en el navegador (no se sube a ningún lado).
 // ---------------------------------------------------------------------------
 type PdfDoc = { numPages: number; getPage: (n: number) => Promise<PdfPagina>; destroy: () => Promise<void> };
+type PdfVista = { width: number; height: number; transform: number[] };
 type PdfPagina = {
-  getViewport: (o: { scale: number }) => { width: number; height: number };
+  getViewport: (o: { scale: number }) => PdfVista;
   render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
+  getTextContent: () => Promise<{ items: Array<{ str?: string; transform?: number[]; width?: number }> }>;
 };
 type Rect = { x: number; y: number; w: number; h: number };
+type Marca = { codigo: string; rect: Rect };
+/** Multiplica dos matrices de transformación de PDF (como pdfjs Util.transform). */
+const multiplicar = (m1: number[], m2: number[]) => [
+  m1[0] * m2[0] + m1[2] * m2[1], m1[1] * m2[0] + m1[3] * m2[1],
+  m1[0] * m2[2] + m1[2] * m2[3], m1[1] * m2[2] + m1[3] * m2[3],
+  m1[0] * m2[4] + m1[2] * m2[5] + m1[4], m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
+];
+const escaparRegex = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Busca en el texto de la página dónde aparece cada código (p. ej. "(238126)") para marcarlo.
+ * Los catálogos escaneados no tienen texto: ahí no hay marcas.
+ */
+async function buscarCodigos(p: PdfPagina, vp: PdfVista, codigos: string[]): Promise<{ marcas: Marca[]; conTexto: boolean }> {
+  const { items } = await p.getTextContent();
+  const marcas: Marca[] = [];
+  const patrones = codigos.filter((c) => c.length >= 3).map((c) => ({ c, re: new RegExp(`(?<![A-Z0-9])${escaparRegex(c)}(?![A-Z0-9])`, 'i') }));
+  let conTexto = false;
+  for (const it of items) {
+    if (!it.str || !it.transform) continue;
+    if (it.str.trim()) conTexto = true;
+    for (const { c, re } of patrones) {
+      const m = re.exec(it.str);
+      if (!m) continue;
+      const t = multiplicar(vp.transform, it.transform);
+      const alto = Math.hypot(t[2], t[3]) || 10;
+      const anchoTotal = (it.width ?? 0) * Math.hypot(vp.transform[0], vp.transform[1]) || alto * it.str.length * 0.5;
+      const porLetra = anchoTotal / Math.max(1, it.str.length);
+      // Margen de una letra a cada lado: el ancho por letra es un promedio y no es exacto.
+      marcas.push({ codigo: c, rect: { x: t[4] + porLetra * (m.index - 1), y: t[5] - alto * 1.1, w: porLetra * (c.length + 2), h: alto * 1.4 } });
+    }
+  }
+  return { marcas, conTexto };
+}
 
 /** Resolución del render para recortar: ~300 ppp, sin pasar de 3600 px de ancho. */
 const ESCALA_MAXIMA = 300 / 72;
@@ -145,6 +183,11 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState<{ ok: boolean; texto: string } | null>(null);
   const [vistaPrevia, setVistaPrevia] = useState<string | null>(null);
+  const [marcas, setMarcas] = useState<Marca[]>([]);
+  const [conTexto, setConTexto] = useState(true);
+  const [herramienta, setHerramienta] = useState<'recortar' | 'tapar'>('recortar');
+  const [tapas, setTapas] = useState<Rect[]>([]);
+  const [cuadrar, setCuadrar] = useState(true);
   const canvas = useRef<HTMLCanvasElement>(null);
   const inicio = useRef<{ x: number; y: number } | null>(null);
 
@@ -158,6 +201,8 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
   // Al cambiar de página, elige el primer producto de esa página que no tenga foto.
   useEffect(() => {
     setSeleccion(null);
+    setTapas([]);
+    setHerramienta('recortar');
     setCodigo((actual) => deLaPagina.find((p) => p.fotos === 0)?.codigo ?? deLaPagina[0]?.codigo ?? actual);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagina, doc]);
@@ -179,16 +224,21 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, c.width, c.height);
       await p.render({ canvasContext: ctx, viewport: vp }).promise;
-      if (!cancelado) setRenderizando(false);
+      const encontrados = await buscarCodigos(p, vp, productos.map((x) => x.codigo)).catch(() => ({ marcas: [], conTexto: false }));
+      if (cancelado) return;
+      setMarcas(encontrados.marcas);
+      setConTexto(encontrados.conTexto);
+      setRenderizando(false);
     })().catch(() => !cancelado && setRenderizando(false));
     return () => { cancelado = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc, pagina]);
 
   // Vista previa del recorte.
   useEffect(() => {
     if (!seleccion || !canvas.current || seleccion.w < 8 || seleccion.h < 8) { setVistaPrevia(null); return; }
-    setVistaPrevia(recortar(canvas.current, seleccion).toDataURL('image/jpeg', 0.8));
-  }, [seleccion]);
+    setVistaPrevia(componer(canvas.current, seleccion, tapas, cuadrar).toDataURL('image/jpeg', 0.8));
+  }, [seleccion, tapas, cuadrar]);
 
   async function alElegirPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const a = e.target.files?.[0];
@@ -213,18 +263,25 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
     const y = Math.max(0, Math.min(c.height, ((e.clientY - r.top) / r.height) * c.height));
     return { x, y };
   }
+  const [tapaEnCurso, setTapaEnCurso] = useState<Rect | null>(null);
   function alBajar(e: React.PointerEvent<HTMLCanvasElement>) {
     e.currentTarget.setPointerCapture(e.pointerId);
     inicio.current = punto(e);
-    setSeleccion({ ...inicio.current, w: 0, h: 0 });
+    const r = { ...inicio.current, w: 0, h: 0 };
+    if (herramienta === 'tapar') setTapaEnCurso(r); else setSeleccion(r);
   }
   function alMover(e: React.PointerEvent<HTMLCanvasElement>) {
     if (!inicio.current) return;
     const p = punto(e);
     const i = inicio.current;
-    setSeleccion({ x: Math.min(i.x, p.x), y: Math.min(i.y, p.y), w: Math.abs(p.x - i.x), h: Math.abs(p.y - i.y) });
+    const r = { x: Math.min(i.x, p.x), y: Math.min(i.y, p.y), w: Math.abs(p.x - i.x), h: Math.abs(p.y - i.y) };
+    if (herramienta === 'tapar') setTapaEnCurso(r); else setSeleccion(r);
   }
-  function alSoltar() { inicio.current = null; }
+  function alSoltar() {
+    inicio.current = null;
+    if (tapaEnCurso && tapaEnCurso.w > 4 && tapaEnCurso.h > 4) setTapas((t) => [...t, tapaEnCurso]);
+    setTapaEnCurso(null);
+  }
 
   function siguientePaginaSinFoto(desde: number) {
     if (!doc) return;
@@ -238,7 +295,7 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
     setGuardando(true);
     setMensaje(null);
     try {
-      const recorte = recortar(canvas.current, seleccion);
+      const recorte = componer(canvas.current, seleccion, tapas, cuadrar);
       const blob = await new Promise<Blob>((ok, mal) => recorte.toBlob((b) => (b ? ok(b) : mal(new Error('No se pudo crear la imagen'))), 'image/webp', 0.92));
       const foto = await subir(blob, 'imagen', CARPETA);
       const res = await accionAsignarFoto(revista.id, codigo, foto);
@@ -246,6 +303,8 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
       onGuardada(codigo);
       setMensaje({ ok: true, texto: `${res.mensaje} (${codigo})` });
       setSeleccion(null);
+      setTapas([]);
+      setHerramienta('recortar');
       const siguiente = deLaPagina.find((p) => p.codigo !== codigo && p.fotos === 0);
       if (siguiente) setCodigo(siguiente.codigo);
     } catch (err) {
@@ -262,7 +321,8 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
       <h2>Recortar del PDF</h2>
       <p className="suave">
         Abre el catálogo de {revista.nombre} (se lee en tu equipo, no se sube). Va directo a la primera página con productos sin foto.
-        Elige el producto, arrastra un recuadro sobre su foto y guarda. La página se dibuja a unos 300 ppp para que el recorte salga nítido.
+        Elige el producto: su código queda resaltado en la página para que veas cuál es. Arrastra un recuadro sobre la foto y guarda.
+        Si queda un precio o sello encima, usa <b>Tapar</b> y pásalo por encima. La foto se guarda cuadrada, centrada y con el color del fondo como margen.
       </p>
       <div className="fila">
         <label className="btn">
@@ -286,15 +346,28 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
               <button type="button" className="btn btn-chico" onClick={() => siguientePaginaSinFoto(pagina)}>Siguiente sin foto ⇥</button>
               {renderizando && <span className="pequeno suave">Dibujando…</span>}
             </div>
+            <div className="fila">
+              <button type="button" className={`btn btn-chico ${herramienta === 'recortar' ? 'btn-primario' : ''}`} onClick={() => setHerramienta('recortar')}>✂ Recortar</button>
+              <button type="button" className={`btn btn-chico ${herramienta === 'tapar' ? 'btn-primario' : ''}`} disabled={!seleccion} onClick={() => setHerramienta('tapar')} title="Pinta encima de precios o sellos dentro del recorte">▮ Tapar</button>
+              {tapas.length > 0 && <button type="button" className="btn btn-chico" onClick={() => setTapas([])}>Quitar tapados ({tapas.length})</button>}
+              {!renderizando && (
+                <span className="pequeno suave">
+                  {!conTexto ? 'Esta página es imagen: ubica el código a ojo.'
+                    : marcas.some((m) => m.codigo === codigo) ? 'El código elegido está marcado en la página.'
+                      : codigo ? `No encontré ${codigo} en esta página.` : ''}
+                </span>
+              )}
+            </div>
             <div className="recorte-lienzo">
               <canvas ref={canvas} onPointerDown={alBajar} onPointerMove={alMover} onPointerUp={alSoltar} onPointerCancel={alSoltar} />
+              {!renderizando && canvas.current && marcas.map((m, i) => (
+                <div key={i} className={`recorte-codigo ${m.codigo === codigo ? 'activo' : ''}`} style={posicion(m.rect, canvas.current!)} />
+              ))}
+              {canvas.current && [...tapas, ...(tapaEnCurso ? [tapaEnCurso] : [])].map((t, i) => (
+                <div key={`t${i}`} className="recorte-tapa" style={posicion(t, canvas.current!)} />
+              ))}
               {seleccion && canvas.current && seleccion.w > 0 && (
-                <div className="recorte-marco" style={{
-                  left: `${(seleccion.x / canvas.current.width) * 100}%`,
-                  top: `${(seleccion.y / canvas.current.height) * 100}%`,
-                  width: `${(seleccion.w / canvas.current.width) * 100}%`,
-                  height: `${(seleccion.h / canvas.current.height) * 100}%`,
-                }} />
+                <div className="recorte-marco" style={posicion(seleccion, canvas.current)} />
               )}
             </div>
           </div>
@@ -321,6 +394,7 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
             ))}
             <hr />
             <p className="pequeno">{elegido ? <>Foto para <b>{elegido.codigo}</b> · {elegido.nombre}</> : 'Elige un producto.'}</p>
+            <label className="check pequeno"><input type="checkbox" checked={cuadrar} onChange={(e) => setCuadrar(e.target.checked)} /> Cuadrada {LADO}×{LADO} con margen</label>
             {vistaPrevia
               ? <img src={vistaPrevia} alt="Vista previa del recorte" className="recorte-previa" />
               : <p className="suave pequeno">Arrastra sobre la página para marcar la foto.</p>}
@@ -334,10 +408,57 @@ function RecortarPdf({ revista, productos, onGuardada }: { revista: RevistaCorta
   );
 }
 
-function recortar(origen: HTMLCanvasElement, r: Rect): HTMLCanvasElement {
-  const c = document.createElement('canvas');
-  c.width = Math.max(1, Math.round(r.w));
-  c.height = Math.max(1, Math.round(r.h));
-  c.getContext('2d')!.drawImage(origen, Math.round(r.x), Math.round(r.y), c.width, c.height, 0, 0, c.width, c.height);
-  return c;
+function posicion(r: Rect, c: HTMLCanvasElement): React.CSSProperties {
+  return { left: `${(r.x / c.width) * 100}%`, top: `${(r.y / c.height) * 100}%`, width: `${(r.w / c.width) * 100}%`, height: `${(r.h / c.height) * 100}%` };
+}
+
+/** Lado de la foto final: cuadrada, como la muestran las tarjetas de la tienda. */
+const LADO = 1000;
+const MARGEN = 0.06;
+
+/** Color promedio del borde de la imagen; si es casi blanco, blanco puro. */
+function colorDeBorde(c: HTMLCanvasElement): string {
+  const ctx = c.getContext('2d')!;
+  const { width: w, height: h } = c;
+  const franjas = [ctx.getImageData(0, 0, w, 1), ctx.getImageData(0, h - 1, w, 1), ctx.getImageData(0, 0, 1, h), ctx.getImageData(w - 1, 0, 1, h)];
+  let r = 0, g = 0, b = 0, n = 0;
+  for (const f of franjas) for (let i = 0; i < f.data.length; i += 4) { r += f.data[i]; g += f.data[i + 1]; b += f.data[i + 2]; n++; }
+  [r, g, b] = [r / n, g / n, b / n].map(Math.round);
+  return r > 235 && g > 235 && b > 235 ? '#ffffff' : `rgb(${r},${g},${b})`;
+}
+
+/**
+ * Arma la foto final: recorta, tapa lo marcado con el color del fondo y, si se pide, la centra
+ * en un cuadrado de LADO×LADO con margen del mismo color, para que todas se vean parejas.
+ */
+function componer(origen: CanvasImageSource & { width: number; height: number }, r: Rect, tapas: Rect[], cuadrar: boolean): HTMLCanvasElement {
+  const recorte = document.createElement('canvas');
+  recorte.width = Math.max(1, Math.round(r.w));
+  recorte.height = Math.max(1, Math.round(r.h));
+  const rc = recorte.getContext('2d', { willReadFrequently: true })!;
+  rc.drawImage(origen, Math.round(r.x), Math.round(r.y), recorte.width, recorte.height, 0, 0, recorte.width, recorte.height);
+  const fondo = colorDeBorde(recorte);
+  rc.fillStyle = fondo;
+  for (const t of tapas) rc.fillRect(Math.round(t.x - r.x), Math.round(t.y - r.y), Math.round(t.w), Math.round(t.h));
+  if (!cuadrar) return recorte;
+
+  const final = document.createElement('canvas');
+  final.width = final.height = LADO;
+  const fc = final.getContext('2d')!;
+  fc.fillStyle = fondo;
+  fc.fillRect(0, 0, LADO, LADO);
+  const util = LADO * (1 - 2 * MARGEN);
+  const escala = Math.min(util / recorte.width, util / recorte.height);
+  const w = recorte.width * escala, h = recorte.height * escala;
+  fc.imageSmoothingQuality = 'high';
+  fc.drawImage(recorte, (LADO - w) / 2, (LADO - h) / 2, w, h);
+  return final;
+}
+
+/** Para la subida en lote: deja una foto cualquiera cuadrada y con margen. */
+async function cuadrarArchivo(a: File): Promise<Blob> {
+  const img = await createImageBitmap(a);
+  const c = componer(img, { x: 0, y: 0, w: img.width, h: img.height }, [], true);
+  img.close();
+  return new Promise<Blob>((ok, mal) => c.toBlob((b) => (b ? ok(b) : mal(new Error('No se pudo preparar la imagen'))), 'image/webp', 0.92));
 }
