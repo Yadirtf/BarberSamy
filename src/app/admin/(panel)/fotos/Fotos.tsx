@@ -94,7 +94,7 @@ function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; 
         Nombra cada foto con el <b>código</b> del producto (por ejemplo <code>15.jpg</code> o <code>{revista.slug}-15.jpg</code>) y elígelas todas juntas.
         Las fotos de celular se achican solas antes de subir. Los archivos cuyo código no exista en {revista.nombre} se saltan.
       </p>
-      <label className="check"><input type="checkbox" checked={cuadrar} onChange={(e) => setCuadrar(e.target.checked)} /> Dejarlas cuadradas de {LADO}×{LADO}, centradas y con margen (recomendado)</label>
+      <label className="check"><input type="checkbox" checked={cuadrar} onChange={(e) => setCuadrar(e.target.checked)} /> Dejarlas cuadradas de {LADO}×{LADO}, centradas y con margen (las PNG sin fondo siguen sin fondo)</label>
       <label className="btn btn-primario" style={{ alignSelf: 'flex-start' }}>
         {estado ? 'Subiendo…' : 'Elegir fotos'}
         <input type="file" accept="image/*" multiple hidden disabled={!!estado} onChange={alElegir} />
@@ -416,13 +416,18 @@ function posicion(r: Rect, c: HTMLCanvasElement): React.CSSProperties {
 const LADO = 1000;
 const MARGEN = 0.06;
 
-/** Color promedio del borde de la imagen; si es casi blanco, blanco puro. */
+/**
+ * Color promedio del borde de la imagen; si es casi blanco, blanco puro. Si el borde es
+ * transparente (PNG sin fondo), el margen queda transparente: la tienda le pone fondo blanco
+ * y el TV muestra el producto suelto.
+ */
 function colorDeBorde(c: HTMLCanvasElement): string {
   const ctx = c.getContext('2d')!;
   const { width: w, height: h } = c;
   const franjas = [ctx.getImageData(0, 0, w, 1), ctx.getImageData(0, h - 1, w, 1), ctx.getImageData(0, 0, 1, h), ctx.getImageData(w - 1, 0, 1, h)];
-  let r = 0, g = 0, b = 0, n = 0;
-  for (const f of franjas) for (let i = 0; i < f.data.length; i += 4) { r += f.data[i]; g += f.data[i + 1]; b += f.data[i + 2]; n++; }
+  let r = 0, g = 0, b = 0, a = 0, n = 0;
+  for (const f of franjas) for (let i = 0; i < f.data.length; i += 4) { r += f.data[i]; g += f.data[i + 1]; b += f.data[i + 2]; a += f.data[i + 3]; n++; }
+  if (a / n < 128) return 'transparent';
   [r, g, b] = [r / n, g / n, b / n].map(Math.round);
   return r > 235 && g > 235 && b > 235 ? '#ffffff' : `rgb(${r},${g},${b})`;
 }
@@ -438,15 +443,17 @@ function componer(origen: CanvasImageSource & { width: number; height: number },
   const rc = recorte.getContext('2d', { willReadFrequently: true })!;
   rc.drawImage(origen, Math.round(r.x), Math.round(r.y), recorte.width, recorte.height, 0, 0, recorte.width, recorte.height);
   const fondo = colorDeBorde(recorte);
-  rc.fillStyle = fondo;
+  rc.fillStyle = fondo === 'transparent' ? '#ffffff' : fondo;
   for (const t of tapas) rc.fillRect(Math.round(t.x - r.x), Math.round(t.y - r.y), Math.round(t.w), Math.round(t.h));
   if (!cuadrar) return recorte;
 
   const final = document.createElement('canvas');
   final.width = final.height = LADO;
   const fc = final.getContext('2d')!;
-  fc.fillStyle = fondo;
-  fc.fillRect(0, 0, LADO, LADO);
+  if (fondo !== 'transparent') {
+    fc.fillStyle = fondo;
+    fc.fillRect(0, 0, LADO, LADO);
+  }
   const util = LADO * (1 - 2 * MARGEN);
   const escala = Math.min(util / recorte.width, util / recorte.height);
   const w = recorte.width * escala, h = recorte.height * escala;

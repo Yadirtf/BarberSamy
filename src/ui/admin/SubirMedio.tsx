@@ -6,7 +6,7 @@ import type { Media, TipoMedia } from '@/domain/media';
 /**
  * Sube fotos o videos directo del navegador a Cloudinary con una firma del servidor.
  * Las fotos tomadas con el celular se achican antes de subir (máx. 1600 px) para que
- * suban rápido con datos móviles. Los PNG conservan la transparencia.
+ * suban rápido con datos móviles. Los PNG y WebP conservan la transparencia.
  */
 const LADO_MAXIMO = 1600;
 
@@ -20,7 +20,8 @@ async function comprimirImagen(archivo: File | Blob): Promise<Blob> {
   canvas.width = Math.round(bitmap.width * escala);
   canvas.height = Math.round(bitmap.height * escala);
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  const tipo = archivo.type === 'image/png' ? 'image/png' : 'image/jpeg';
+  // PNG y WebP pueden traer transparencia (fotos sin fondo): se conserva el formato.
+  const tipo = archivo.type === 'image/jpeg' ? 'image/jpeg' : archivo.type;
   return new Promise((ok) => canvas.toBlob((b) => ok(b ?? archivo), tipo, 0.86));
 }
 
