@@ -191,7 +191,7 @@ a.chip:hover { border-color: var(--primario); color: var(--primario); }
   box-shadow: var(--sombra); transition: transform .15s, box-shadow .15s, border-color .15s;
 }
 .producto-tarjeta:hover { border-color: var(--primario); transform: translateY(-2px); box-shadow: var(--sombra-fuerte); }
-.producto-foto { position: relative; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.producto-foto { position: relative; aspect-ratio: 1 / 1; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .producto-foto img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
 .producto-foto .sin-foto { font-family: "Hombros"; font-size: 2.4rem; color: rgba(216, 27, 96, .25); }
 .producto-foto .etiqueta { position: absolute; top: 8px; left: 8px; background: var(--degradado); color: #fff; font-size: .72rem; font-weight: 800; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; }
@@ -208,10 +208,10 @@ a.chip:hover { border-color: var(--primario); color: var(--primario); }
 /* ---------- Ficha de producto ---------- */
 .ficha { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 18px 0 40px; }
 @media (min-width: 860px) { .ficha { grid-template-columns: 1.1fr 1fr; gap: 36px; } }
-.galeria-principal { aspect-ratio: 1 / 1; border-radius: var(--radio); overflow: hidden; box-shadow: var(--sombra); display: flex; align-items: center; justify-content: center; }
+.galeria-principal { aspect-ratio: 1 / 1; background: #fff; border-radius: var(--radio); overflow: hidden; box-shadow: var(--sombra); display: flex; align-items: center; justify-content: center; }
 .galeria-principal img { width: 100%; height: 100%; object-fit: contain; padding: 18px; }
 .galeria-miniaturas { display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; }
-.galeria-miniaturas button { width: 64px; height: 64px; padding: 4px; border-radius: 10px; border: 1px solid var(--borde); background: var(--superficie); cursor: pointer; flex: 0 0 auto; }
+.galeria-miniaturas button { width: 64px; height: 64px; padding: 4px; border-radius: 10px; border: 1px solid var(--borde); background: #fff; cursor: pointer; flex: 0 0 auto; }
 .galeria-miniaturas button.activo { border-color: var(--primario); }
 .galeria-miniaturas img { width: 100%; height: 100%; object-fit: contain; }
 .ficha-codigo { display: inline-flex; flex-direction: column; padding: 10px 16px; border: 2px dashed var(--primario); background: var(--primario-suave); border-radius: 12px; margin: 6px 0 12px; }
@@ -247,7 +247,7 @@ table.tabla { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .tabla th, .tabla td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
 .tabla th { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-suave); background: var(--superficie); }
 .tabla tr:last-child td { border-bottom: 0; }
-.mini-foto { width: 44px; height: 44px; border-radius: 8px; object-fit: contain; background: var(--superficie-2); }
+.mini-foto { width: 44px; height: 44px; border-radius: 8px; object-fit: contain; background: #fff; }
 .indicadores { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 @media (min-width: 760px) { .indicadores { grid-template-columns: repeat(4, 1fr); } }
 .indicador { background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio); padding: 14px; text-decoration: none; box-shadow: var(--sombra); }
