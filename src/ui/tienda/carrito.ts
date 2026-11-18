@@ -71,6 +71,16 @@ function guardar(nuevo: EstadoCarrito) {
   oyentes.forEach((f) => f());
 }
 
+export interface UltimoEnvio {
+  items: ItemCarrito[];
+  nota: string;
+  mensaje: string;
+  urlWhatsapp: string | null;
+  fecha: number;
+}
+const CLAVE_ENVIO = 'tienda-samy:ultimo-envio:v1';
+const VIGENCIA_ENVIO = 2 * 3600_000;
+
 const claveDe = (i: ItemCarrito) => (i.tipo === 'producto' ? i.productoId : i.clave);
 
 export const carrito = {
@@ -99,6 +109,28 @@ export const carrito = {
   vaciar() {
     const s = carrito.obtener();
     guardar({ ...s, items: [], nota: '' });
+  },
+  /**
+   * El pedido ya no queda guardado en el panel: si el cliente vuelve de WhatsApp sin enviar
+   * (o se le cerró), aquí está el último mensaje para reabrirlo o recuperar los productos.
+   */
+  recordarEnvio(envio: Omit<UltimoEnvio, 'fecha'>) {
+    try { window.localStorage.setItem(CLAVE_ENVIO, JSON.stringify({ ...envio, fecha: Date.now() })); } catch { /* sin almacenamiento */ }
+  },
+  ultimoEnvio(): UltimoEnvio | null {
+    try {
+      const e = JSON.parse(window.localStorage.getItem(CLAVE_ENVIO) ?? 'null') as UltimoEnvio | null;
+      return e && Date.now() - e.fecha < VIGENCIA_ENVIO ? e : null;
+    } catch { return null; }
+  },
+  olvidarEnvio() {
+    try { window.localStorage.removeItem(CLAVE_ENVIO); } catch { /* sin almacenamiento */ }
+  },
+  /** Devuelve al carrito los productos del último envío. */
+  recuperar(envio: UltimoEnvio) {
+    const s = carrito.obtener();
+    guardar({ ...s, items: envio.items, nota: envio.nota });
+    carrito.olvidarEnvio();
   },
   claveDe,
 };

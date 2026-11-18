@@ -60,3 +60,27 @@ describe('seguridad', () => {
     expect(await leerSesion(t.slice(0, -2) + 'aa', secreto)).toBeNull();
   });
 });
+
+describe('mensaje del carrito para WhatsApp', () => {
+  it('separa lo del local de lo que va por pedido y suma las unidades', async () => {
+    const { mensajeCarrito } = await import('@/domain/pedidos/mensajeWhatsapp');
+    const m = mensajeCarrito({
+      encabezado: '',
+      cliente: { nombre: ' Laura ', telefono: '300 111' },
+      nota: 'Para regalo',
+      diasEntrega: 6,
+      lineas: [
+        { nombre: 'Perfume Ccori', revistaNombre: 'Yanbal', codigo: '12345', cantidad: 2, enLocal: false },
+        { nombre: 'Pomada', revistaNombre: 'Barbería Samy', codigo: null, cantidad: 1, enLocal: true },
+      ],
+    });
+    expect(m).toContain('*Cliente:* Laura');
+    expect(m).toContain('*Teléfono:* 300 111');
+    expect(m).toContain('*Disponibles en el local*');
+    expect(m).toContain('*Por pedido (llegan en unos 6 días)*');
+    expect(m).toContain('1. Pomada\n    Barbería Samy\n    Cantidad: 1');
+    expect(m).toContain('2. Perfume Ccori\n    Yanbal · Cód. 12345\n    Cantidad: 2');
+    expect(m).toContain('*Total: 3 unidades* (2 productos)');
+    expect(m.startsWith('Hola! Quiero hacer este pedido:')).toBe(true);
+  });
+});

@@ -34,6 +34,7 @@ export default async function Pedidos({ searchParams }: { searchParams: Promise<
         <h1 style={{ margin: 0 }}>Pedidos</h1>
         <Link href="/admin/pedidos/proveedores" className="btn btn-primario">Qué pedir a cada proveedor</Link>
       </div>
+      <p className="aviso">Los pedidos de la tienda ya no se guardan aquí: llegan directo a tu WhatsApp para que cierres la venta desde el chat. Aquí quedan los pedidos anteriores.</p>
       <div className="filtros">
         <Link className={`chip ${!estado ? 'activo' : ''}`} href={qs({ estado: undefined })}>Todos</Link>
         {ESTADOS_PEDIDO.map((e) => <Link key={e} className={`chip ${estado === e ? 'activo' : ''}`} href={qs({ estado: e })}>{NOMBRE_ESTADO[e]}</Link>)}

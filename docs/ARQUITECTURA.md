@@ -91,10 +91,9 @@ Decisiones:
 ## Flujo de un pedido
 
 1. El carrito vive en el celular (localStorage). Al abrirlo se verifica contra `/api/carrito/verificar`.
-2. "Enviar pedido por WhatsApp" hace `POST /api/pedidos`: valida, limita por IP (8 por hora), toma una copia de cada producto, asigna el número y guarda con estado **Nuevo**.
-3. La respuesta trae el enlace `wa.me` con el mensaje armado y el navegador lo abre.
-4. En el panel: Nuevo → Confirmado → Pedido al proveedor → Llegó → Entregado (o Cancelado). Cada cambio queda en el historial con fecha.
-5. "Qué pedir a cada proveedor" suma los pedidos confirmados por revista y código.
+2. "Enviar pedido por WhatsApp" arma el mensaje en el navegador (`mensajeCarrito` en `domain/pedidos/mensajeWhatsapp.ts`): datos del cliente, productos en el local, productos por pedido (revista, código y cantidad) y total de unidades.
+3. Se abre `wa.me/<número de Configuración>` con ese mensaje y la clienta cierra la venta en el chat. **El pedido no se guarda en el panel** (decisión de la clienta, nov. 2026); si no hay número configurado, el cliente ve el mensaje para copiarlo.
+4. Los pedidos guardados antes de ese cambio siguen en el panel con sus estados (Nuevo → Confirmado → Pedido al proveedor → Llegó → Entregado o Cancelado) y en "Qué pedir a cada proveedor". El caso de uso `pedidos.crear` sigue en `application/` por si se quiere volver a guardar, pero ya no tiene ruta pública.
 
 ## Métricas
 
