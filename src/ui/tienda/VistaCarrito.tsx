@@ -3,21 +3,23 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ETIQUETA_DISPONIBILIDAD } from '@/domain/catalogo/producto';
-import { carrito, type ItemCarrito, origenPedido, useCarrito } from './carrito';
+import { enlaceWhatsapp, mensajeCarrito } from '@/domain/pedidos/mensajeWhatsapp';
+import { carrito, type ItemCarrito, type UltimoEnvio, useCarrito } from './carrito';
 
 type RevistaOpcion = { id: string; nombre: string; diasEntrega: number };
 type Verificacion = Record<string, { disponible: boolean; disponibilidad: string }>;
 type Entrega = { info: string; mediosPago: string[] };
-type Enviado = { numero: number; urlWhatsapp: string | null; mensaje: string };
+type Whatsapp = { numero: string; encabezado: string };
+type Enviado = Pick<UltimoEnvio, 'urlWhatsapp' | 'mensaje'>;
 
-const numero = (n: number) => String(n).padStart(4, '0');
-
-export function VistaCarrito({ revistas, entrega }: { revistas: RevistaOpcion[]; entrega: Entrega }) {
+export function VistaCarrito({ revistas, entrega, whatsapp }: { revistas: RevistaOpcion[]; entrega: Entrega; whatsapp: Whatsapp }) {
   const estado = useCarrito();
   const [verificacion, setVerificacion] = useState<Verificacion>({});
-  const [enviando, setEnviando] = useState(false);
+  const [copiado, setCopiado] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enviado, setEnviado] = useState<Enviado | null>(null);
+  const [anterior, setAnterior] = useState<UltimoEnvio | null>(null);
+  useEffect(() => { setAnterior(carrito.ultimoEnvio()); }, []);
 
   // Al abrir el carrito se verifica que los productos sigan activos (pudo cambiar la campaña).
   const ids = estado.items.filter((i) => i.tipo === 'producto').map((i) => (i.tipo === 'producto' ? i.productoId : '')).join(',');
@@ -42,49 +44,57 @@ export function VistaCarrito({ revistas, entrega }: { revistas: RevistaOpcion[];
   const hayNoDisponibles = estado.items.some(noDisponible);
   const diasMax = Math.max(0, ...porPedido.map((i) => revistas.find((r) => r.id === i.revistaId)?.diasEntrega ?? 0));
 
-  async function enviar(e: React.FormEvent) {
+  /**
+   * El pedido NO se guarda en el panel: se arma el mensaje aquí mismo y se abre el chat
+   * de WhatsApp de la tienda, donde la clienta confirma precios y cierra la venta.
+   */
+  function enviar(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (estado.nombre.trim().length < 2) { setError('Escribe tu nombre para enviar el pedido.'); return; }
-    setEnviando(true);
-    try {
-      const r = await fetch('/api/pedidos', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          items: estado.items.map((i) => (i.tipo === 'producto'
-            ? { productoId: i.productoId, cantidad: i.cantidad }
-            : { revistaId: i.revistaId, codigo: i.codigo, descripcion: i.descripcion || undefined, cantidad: i.cantidad })),
-          cliente: { nombre: estado.nombre, telefono: estado.telefono || null },
-          nota: estado.nota || null,
-          origen: origenPedido(),
-        }),
-      });
-      const d = await r.json();
-      if (!r.ok) { setError(d.error ?? 'No se pudo enviar el pedido.'); return; }
-      setEnviado(d);
-      carrito.vaciar();
-      if (d.urlWhatsapp) window.location.href = d.urlWhatsapp;
-    } catch {
-      setError('Sin conexión. Revisa tu internet e intenta de nuevo.');
-    } finally {
-      setEnviando(false);
-    }
+    if (hayNoDisponibles) return;
+    const mensaje = mensajeCarrito({
+      encabezado: whatsapp.encabezado,
+      lineas: [...vitrina, ...porPedido].map((i) => ({
+        nombre: i.tipo === 'producto' ? i.nombre : i.descripcion || 'Producto por código',
+        revistaNombre: i.revistaNombre,
+        codigo: i.codigo || null,
+        cantidad: i.cantidad,
+        enLocal: vitrina.includes(i),
+      })),
+      cliente: { nombre: estado.nombre, telefono: estado.telefono },
+      nota: estado.nota,
+      diasEntrega: porPedido.length ? diasMax || 5 : 0,
+    });
+    const urlWhatsapp = whatsapp.numero ? enlaceWhatsapp(whatsapp.numero, mensaje) : null;
+    setEnviado({ urlWhatsapp, mensaje });
+    carrito.recordarEnvio({ items: estado.items, nota: estado.nota, mensaje, urlWhatsapp });
+    carrito.vaciar();
+    window.scrollTo(0, 0);
+    if (urlWhatsapp) window.location.href = urlWhatsapp;
+  }
+
+  async function copiar(texto: string) {
+    try { await navigator.clipboard.writeText(texto); setCopiado(true); } catch { /* el texto queda a la vista para copiarlo a mano */ }
   }
 
   if (enviado) {
     return (
       <div className="seccion pila" style={{ maxWidth: 560 }}>
-        <h1>Pedido #{numero(enviado.numero)} listo</h1>
-        <p>Se abrió WhatsApp con tu pedido. <b>Solo falta que presiones enviar.</b> Te respondemos con el precio y la entrega.</p>
+        <h1>Tu pedido está listo</h1>
         {enviado.urlWhatsapp ? (
-          <a className="btn btn-wa btn-bloque" href={enviado.urlWhatsapp}>Abrir WhatsApp de nuevo</a>
-        ) : (
           <>
-            <p className="aviso">Copia este mensaje y envíalo a la tienda:</p>
-            <pre className="tarjeta" style={{ whiteSpace: 'pre-wrap' }}>{enviado.mensaje}</pre>
+            <p>Abrimos WhatsApp con tu pedido. <b>Solo falta que presiones enviar.</b> Te respondemos por ahí con el precio y la entrega.</p>
+            <a className="btn btn-wa btn-bloque" href={enviado.urlWhatsapp}>¿No se abrió? Abrir WhatsApp</a>
           </>
+        ) : (
+          <p className="aviso">Copia este mensaje y envíalo a la tienda por WhatsApp:</p>
         )}
+        <details open={!enviado.urlWhatsapp}>
+          <summary className="suave pequeno">Ver el mensaje</summary>
+          <pre className="tarjeta" style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>{enviado.mensaje}</pre>
+          <button type="button" className="btn btn-chico" onClick={() => copiar(enviado.mensaje)}>{copiado ? 'Copiado ✓' : 'Copiar mensaje'}</button>
+        </details>
         <Link href="/" className="btn btn-bloque">Seguir viendo productos</Link>
       </div>
     );
@@ -93,6 +103,16 @@ export function VistaCarrito({ revistas, entrega }: { revistas: RevistaOpcion[];
   return (
     <div className="seccion" style={{ maxWidth: 720 }}>
       <h1>Tu pedido</h1>
+      {!estado.items.length && anterior && (
+        <div className="aviso pila">
+          <p style={{ margin: 0 }}><b>Ya armaste un pedido hace un momento.</b> Si no alcanzaste a enviarlo por WhatsApp, ábrelo de nuevo o recupera los productos.</p>
+          <div className="fila">
+            {anterior.urlWhatsapp && <a className="btn btn-wa btn-chico" href={anterior.urlWhatsapp}>Abrir WhatsApp de nuevo</a>}
+            <button type="button" className="btn btn-chico" onClick={() => { carrito.recuperar(anterior); setAnterior(null); }}>Recuperar productos</button>
+            <button type="button" className="btn btn-chico" onClick={() => { carrito.olvidarEnvio(); setAnterior(null); }}>Ya lo envié</button>
+          </div>
+        </div>
+      )}
       {!estado.items.length && (
         <div className="vacio">
           <p>Tu pedido está vacío.</p>
@@ -137,8 +157,8 @@ export function VistaCarrito({ revistas, entrega }: { revistas: RevistaOpcion[];
           {error && <p className="aviso aviso-error" role="alert">{error}</p>}
           {hayNoDisponibles && <p className="aviso aviso-error">Quita los productos marcados como no disponibles para poder enviar.</p>}
           <div className="barra-inferior">
-            <button className="btn btn-wa btn-bloque" type="submit" disabled={enviando || hayNoDisponibles}>
-              {enviando ? 'Guardando pedido…' : `Enviar pedido por WhatsApp (${unidades} ${unidades === 1 ? 'unidad' : 'unidades'})`}
+            <button className="btn btn-wa btn-bloque" type="submit" disabled={hayNoDisponibles}>
+              {`Enviar pedido por WhatsApp (${unidades} ${unidades === 1 ? 'unidad' : 'unidades'})`}
             </button>
             <p className="suave pequeno" style={{ textAlign: 'center', margin: '8px 0 0' }}>Sin precios: te los confirmamos con el catálogo vigente.</p>
           </div>

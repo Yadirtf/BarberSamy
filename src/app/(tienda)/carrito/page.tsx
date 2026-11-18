@@ -10,6 +10,7 @@ export default async function PaginaCarrito() {
     <VistaCarrito
       revistas={revistas.map((r) => ({ id: r.id, nombre: r.nombre, diasEntrega: r.diasEntrega }))}
       entrega={{ info: config.infoEntrega, mediosPago: config.mediosPago }}
+      whatsapp={{ numero: config.whatsapp, encabezado: config.encabezadoPedido ?? '' }}
     />
   );
 }
