@@ -109,12 +109,15 @@ export function casosProductos(d: D) {
   /**
    * Pone una foto como principal del producto identificado por revista + código (subida por
    * lotes o recorte desde el PDF). Si la foto ya estaba, solo la mueve al primer lugar.
+   * Con `reemplazar`, la nueva toma el lugar de la principal anterior (que sale de la galería);
+   * las demás fotos se conservan. Sirve para cambiar fotos cortadas o mal recortadas.
    */
-  async function agregarFotoPorCodigo(revistaId: string, codigo: string, foto: Media): Promise<Producto> {
+  async function agregarFotoPorCodigo(revistaId: string, codigo: string, foto: Media, reemplazar = false): Promise<Producto> {
     if (!esMediaValida(foto) || foto.tipo !== 'imagen') throw invalido('La foto no es válida');
     const producto = await d.productos.porCodigo(revistaId, codigo.trim());
     if (!producto) throw noEncontrado(`El código ${codigo}`);
-    const imagenes = [foto, ...producto.imagenes.filter((m) => m.ref !== foto.ref)].slice(0, 8);
+    const resto = reemplazar ? producto.imagenes.slice(1) : producto.imagenes;
+    const imagenes = [foto, ...resto.filter((m) => m.ref !== foto.ref)].slice(0, 8);
     const actualizado: Producto = { ...producto, imagenes, actualizadoEn: d.reloj.ahora() };
     await d.productos.guardar(actualizado);
     await marcarCambioCatalogo(d);

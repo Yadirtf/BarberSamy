@@ -127,11 +127,12 @@ export async function accionProductosParaFotos(revistaId: string): Promise<Produ
 /**
  * Asigna una foto por código. En la subida en lote se pasa `refrescar: false` y la tienda se
  * refresca una sola vez al final: así cada foto gasta menos CPU del Worker y menos escrituras de KV.
+ * Con `reemplazar`, la foto nueva sustituye a la principal en vez de sumarse a la galería.
  */
-export async function accionAsignarFoto(revistaId: string, codigo: string, foto: Media, refrescar = true): Promise<EstadoAccion> {
+export async function accionAsignarFoto(revistaId: string, codigo: string, foto: Media, refrescar = true, reemplazar = false): Promise<EstadoAccion> {
   await requerirSesion();
   try {
-    const p = await casos().productos.agregarFotoPorCodigo(revistaId, codigo, foto);
+    const p = await casos().productos.agregarFotoPorCodigo(revistaId, codigo, foto, reemplazar);
     if (refrescar) await invalidarCatalogo();
     return ok(`Foto guardada en ${p.nombre}`);
   } catch (e) { return errorAccion(e); }
