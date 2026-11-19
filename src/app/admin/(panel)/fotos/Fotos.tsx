@@ -78,6 +78,7 @@ function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; 
   const [reporte, setReporte] = useState<{ ok: number; sinProducto: string[]; conFoto: string[]; errores: string[] } | null>(null);
   const [cuadrar, setCuadrar] = useState(true);
   const [saltarConFoto, setSaltarConFoto] = useState(true);
+  const [reemplazar, setReemplazar] = useState(false);
   const codigos = useMemo(() => new Map(productos.map((p) => [p.codigo.toUpperCase(), p])), [productos]);
 
   async function alElegir(e: React.ChangeEvent<HTMLInputElement>) {
@@ -89,11 +90,11 @@ function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; 
       const producto = codigos.get(codigoDesdeArchivo(a.name, revista.slug).toUpperCase());
       if (!producto) { r.sinProducto.push(a.name); continue; }
       // Volver a elegir la carpeta completa no duplica: se saltan los que ya tienen foto.
-      if (saltarConFoto && producto.fotos > 0) { r.conFoto.push(a.name); continue; }
+      if (saltarConFoto && !reemplazar && producto.fotos > 0) { r.conFoto.push(a.name); continue; }
       setEstado(`Subiendo ${i + 1} de ${archivos.length}: ${a.name}`);
       try {
         const foto = await subir(cuadrar ? await cuadrarArchivo(a) : a, 'imagen', CARPETA);
-        const res = await conReintentos(() => accionAsignarFoto(revista.id, producto.codigo, foto, false));
+        const res = await conReintentos(() => accionAsignarFoto(revista.id, producto.codigo, foto, false, reemplazar));
         if (res?.ok) { r.ok++; onGuardada(producto.codigo); } else r.errores.push(`${a.name}: ${res?.mensaje ?? 'error'}`);
       } catch (err) {
         r.errores.push(`${a.name}: el servidor no respondió (${(err as Error).message}). Vuelve a elegir las fotos: las que ya quedaron se saltan.`);
@@ -115,7 +116,8 @@ function SubirLote({ revista, productos, onGuardada }: { revista: RevistaCorta; 
         Las fotos de celular se achican solas antes de subir. Los archivos cuyo código no exista en {revista.nombre} se saltan.
       </p>
       <label className="check"><input type="checkbox" checked={cuadrar} onChange={(e) => setCuadrar(e.target.checked)} /> Dejarlas cuadradas de {LADO}×{LADO}, centradas y con margen (las PNG sin fondo siguen sin fondo)</label>
-      <label className="check"><input type="checkbox" checked={saltarConFoto} onChange={(e) => setSaltarConFoto(e.target.checked)} /> Saltar los productos que ya tienen foto (así puedes volver a elegir todas sin duplicar)</label>
+      <label className="check"><input type="checkbox" checked={reemplazar} onChange={(e) => setReemplazar(e.target.checked)} /> Reemplazar la foto principal (para cambiar fotos cortadas: la anterior sale de la galería y las demás se conservan)</label>
+      <label className="check"><input type="checkbox" checked={saltarConFoto && !reemplazar} disabled={reemplazar} onChange={(e) => setSaltarConFoto(e.target.checked)} /> Saltar los productos que ya tienen foto (así puedes volver a elegir todas sin duplicar)</label>
       <label className="btn btn-primario" style={{ alignSelf: 'flex-start' }}>
         {estado ? 'Subiendo…' : 'Elegir fotos'}
         <input type="file" accept="image/*" multiple hidden disabled={!!estado} onChange={alElegir} />

@@ -189,6 +189,17 @@ describe('fotos por código', () => {
     const lista = await p.listarParaFotos(yanbal.id);
     expect(lista.find((x) => x.codigo === '12345')?.fotos).toBe(2);
   });
+
+  it('con reemplazar cambia la foto principal y conserva las demás', async () => {
+    const d = dependenciasEnMemoria();
+    const { yanbal } = await preparar(d);
+    const p = casosProductos(d);
+    const cortada = { proveedor: 'cloudinary' as const, ref: 'tienda/productos/cortada', tipo: 'imagen' as const };
+    const completa = { proveedor: 'cloudinary' as const, ref: 'tienda/productos/completa', tipo: 'imagen' as const };
+    await p.agregarFotoPorCodigo(yanbal.id, '12345', cortada);
+    const r = await p.agregarFotoPorCodigo(yanbal.id, '12345', completa, true);
+    expect(r.imagenes.map((m) => m.ref)).toEqual(['tienda/productos/completa', 'tienda/productos/yanbal-12345']);
+  });
 });
 
 describe('importación CSV en tandas', () => {
